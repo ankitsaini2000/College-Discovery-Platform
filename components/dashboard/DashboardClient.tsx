@@ -7,7 +7,7 @@ import { Bookmark, GitCompare, Plus, Trash2, ExternalLink } from "lucide-react"
 import { Button, Skeleton } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import { useCompareStore } from "@/store/compareStore"
-import { useSavedColleges, useSavedComparisons, useUnsaveCollege, useDeleteComparison } from "@/hooks/useSaved"
+import { useSavedColleges, useSavedComparisons, useDeleteComparison } from "@/hooks/useSaved"
 import type { SavedComparisonWithColleges, CollegeCard as CollegeCardType } from "@/types"
 
 interface DashboardClientProps {
@@ -35,7 +35,6 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
     refetch: refetchComparisons,
   } = useSavedComparisons()
 
-  const unsaveCollege = useUnsaveCollege()
   const deleteComparison = useDeleteComparison()
 
   const savedColleges = savedCollegesData?.data || []
@@ -44,12 +43,6 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
   function formatDate(dateStr: string | Date) {
     const d = new Date(dateStr)
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-  }
-
-  function handleRemoveSaved(collegeId: string) {
-    const savedRecord = savedColleges.find((s) => s.collegeId === collegeId)
-    if (!savedRecord) return
-    unsaveCollege.mutate(savedRecord.id)
   }
 
   function handleDeleteComparison(comparisonId: string) {
@@ -148,8 +141,6 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
                   <CollegeCard
                     key={saved.id}
                     college={saved.college}
-                    isSaved={true}
-                    onSave={handleRemoveSaved}
                     showCompareButton={true}
                   />
                 ))}

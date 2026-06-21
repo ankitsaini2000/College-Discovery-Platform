@@ -18,13 +18,14 @@ interface CollegeActionsProps {
 export default function CollegeActions({ college, website }: CollegeActionsProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const saveCollege = useSaveCollege()
-  const unsaveCollege = useUnsaveCollege()
+  const { mutate: saveCollege, isPending: isSaving } = useSaveCollege()
+  const { mutate: unsaveCollege, isPending: isUnsaving } = useUnsaveCollege()
   const { isSaved, getSavedId } = useSavedIds()
   const { addCollege, removeCollege, isInCompare, canAdd } = useCompareStore()
 
   const saved = isSaved(college.id)
   const inCompare = isInCompare(college.id)
+  const isActionPending = isSaving || isUnsaving
 
   function handleSave() {
     if (!session) {
@@ -33,9 +34,9 @@ export default function CollegeActions({ college, website }: CollegeActionsProps
     }
     if (saved) {
       const savedId = getSavedId(college.id)
-      if (savedId) unsaveCollege.mutate(savedId)
+      if (savedId) unsaveCollege(savedId)
     } else {
-      saveCollege.mutate(college.id)
+      saveCollege(college.id)
     }
   }
 
@@ -53,10 +54,17 @@ export default function CollegeActions({ college, website }: CollegeActionsProps
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-      <Button variant={saved ? "primary" : "outline"} onClick={handleSave}>
-        <Bookmark className="h-4 w-4" />
-        {saved ? "Saved" : "Save College"}
-      </Button>
+      {saved ? (
+        <Button variant="outline" onClick={handleSave} isLoading={isActionPending} className="text-blue-600 border-blue-600">
+          <Bookmark className="w-4 h-4" fill="currentColor" />
+          Saved
+        </Button>
+      ) : (
+        <Button variant="outline" onClick={handleSave} isLoading={isActionPending}>
+          <Bookmark className="w-4 h-4" />
+          Save College
+        </Button>
+      )}
       <Button variant={inCompare ? "danger" : "secondary"} onClick={handleCompare}>
         <GitCompare className="h-4 w-4" />
         {inCompare ? "✓ In Comparison" : "+ Compare"}

@@ -1,9 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { MapPin, Bookmark, Star } from "lucide-react"
 import { Card, Badge } from "@/components/ui"
 import { useCompareStore } from "@/store/compareStore"
+import { useSaveCollege, useUnsaveCollege } from "@/hooks/useSaved"
+import { useSavedIds } from "@/hooks/useSavedIds"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import type { CollegeCard as CollegeCardType } from "@/types"
 
@@ -26,19 +31,45 @@ const typeBadgeVariant: Record<string, "success" | "info" | "warning" | "default
 
 interface CollegeCardProps {
   college: CollegeCardType
-  isSaved?: boolean
-  onSave?: (collegeId: string) => void
   showCompareButton?: boolean
 }
 
 export default function CollegeCard({
   college,
-  isSaved = false,
-  onSave,
   showCompareButton = true,
 }: CollegeCardProps) {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const { isSaved, getSavedId } = useSavedIds()
+  const { mutate: saveCollege, isPending: isSaving } = useSaveCollege()
+  const { mutate: unsaveCollege, isPending: isUnsaving } = useUnsaveCollege()
+  const isCollegeSaved = isSaved(college.id)
+  const savedRecordId = getSavedId(college.id)
+  const isActionPending = isSaving || isUnsaving
+
   const { addCollege, removeCollege, isInCompare, canAdd } = useCompareStore()
   const inCompare = isInCompare(college.id)
+
+  function handleSaveClick(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!session) {
+      toast.error("Please log in to save colleges", {
+        action: {
+          label: "Log In",
+          onClick: () => router.push("/login"),
+        },
+      })
+      return
+    }
+
+    if (isCollegeSaved && savedRecordId) {
+      unsaveCollege(savedRecordId)
+    } else {
+      saveCollege(college.id)
+    }
+  }
 
   function handleCompare() {
     if (inCompare) {
@@ -90,23 +121,23 @@ export default function CollegeCard({
           >
             {college.name}
           </Link>
-          {onSave && (
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                onSave(college.id)
-              }}
-              className="shrink-0 mt-0.5"
-            >
-              <Bookmark
-                className={`h-5 w-5 transition-colors ${
-                  isSaved
-                    ? "fill-blue-600 text-blue-600"
-                    : "text-gray-400 hover:text-blue-600"
-                }`}
-              />
-            </button>
-          )}
+          <button
+            onClick={handleSaveClick}
+            disabled={isActionPending}
+            className={cn(
+              "p-1.5 rounded-lg transition-all duration-200 shrink-0 mt-0.5",
+              isCollegeSaved
+                ? "text-blue-600 hover:text-red-500 hover:bg-red-50"
+                : "text-gray-400 hover:text-blue-600 hover:bg-blue-50",
+              isActionPending && "opacity-50 cursor-not-allowed"
+            )}
+            title={isCollegeSaved ? "Remove from saved" : "Save college"}
+          >
+            <Bookmark
+              className="w-4 h-4"
+              fill={isCollegeSaved ? "currentColor" : "none"}
+            />
+          </button>
         </div>
 
         <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">

@@ -140,7 +140,9 @@ function ReviewForm({
           required
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
         />
-        <p className="text-xs text-gray-400 mt-1">{title.length}/100</p>
+        <p className={`text-xs mt-1 ${
+          title.length > 90 ? "text-orange-500" : title.length > 95 ? "text-red-500" : "text-gray-400"
+        }`}>{title.length}/100</p>
       </div>
 
       <div>
@@ -155,7 +157,9 @@ function ReviewForm({
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 resize-y"
         />
-        <p className="text-xs text-gray-400 mt-1">{content.length}/2000</p>
+        <p className={`text-xs mt-1 ${
+          content.length > 1900 ? "text-orange-500" : content.length > 1950 ? "text-red-500" : "text-gray-400"
+        }`}>{content.length}/2000</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -168,6 +172,9 @@ function ReviewForm({
             maxLength={500}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           />
+          <p className={`text-xs mt-1 ${
+            pros.length > 450 ? "text-orange-500" : pros.length > 475 ? "text-red-500" : "text-gray-400"
+          }`}>{pros.length}/500</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Cons (optional)</label>
@@ -178,6 +185,9 @@ function ReviewForm({
             maxLength={500}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           />
+          <p className={`text-xs mt-1 ${
+            cons.length > 450 ? "text-orange-500" : cons.length > 475 ? "text-red-500" : "text-gray-400"
+          }`}>{cons.length}/500</p>
         </div>
       </div>
 

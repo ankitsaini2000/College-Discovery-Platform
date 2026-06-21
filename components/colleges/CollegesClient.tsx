@@ -63,10 +63,6 @@ export default function CollegesClient({ states }: { states: string[] }) {
 
   return (
     <>
-      {isPending && (
-        <div className="h-0.5 bg-blue-600 animate-pulse rounded-full mb-2" />
-      )}
-
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
@@ -104,6 +100,11 @@ export default function CollegesClient({ states }: { states: string[] }) {
           </select>
         </div>
       </div>
+
+      <div className="relative">
+        {isPending && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-600 animate-pulse z-10" />
+        )}
 
       {isLoading ? (
         <SkeletonCollegeGrid count={12} />
@@ -176,6 +177,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
           )}
         </>
       )}
+      </div>
 
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">

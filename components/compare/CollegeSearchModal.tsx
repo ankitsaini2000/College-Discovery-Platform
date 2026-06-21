@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { useDebounce } from "@/hooks/useDebounce"
 import { Search, X, Check } from "lucide-react"
 import { Badge, Skeleton } from "@/components/ui"
 import type { CollegeCard } from "@/types"
@@ -19,30 +20,31 @@ export default function CollegeSearchModal({
   excludeIds,
 }: CollegeSearchModalProps) {
   const [query, setQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const debouncedQuery = useDebounce(query, 300)
   const [results, setResults] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 300)
-    return () => clearTimeout(timer)
-  }, [query])
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (!debouncedQuery) {
       setResults([])
       return
     }
-    let cancelled = false
+
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setIsLoading(true)
-    fetch(`/api/colleges?search=${encodeURIComponent(debouncedQuery)}&limit=8`)
+    fetch(`/api/colleges?search=${encodeURIComponent(debouncedQuery)}&limit=8`, {
+      signal: controller.signal,
+    })
       .then((res) => res.json())
-      .then((json) => {
-        if (!cancelled) setResults(json.data || [])
-      })
-      .catch(() => { if (!cancelled) setResults([]) })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
-    return () => { cancelled = true }
+      .then((json) => setResults(json.data || []))
+      .catch(() => {})
+      .finally(() => setIsLoading(false))
+
+    return () => controller.abort()
   }, [debouncedQuery])
 
   const handleSelect = useCallback(

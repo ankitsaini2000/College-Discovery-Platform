@@ -39,12 +39,34 @@ export function useSaveCollege() {
       if (!res.ok) throw new Error("Failed to save college")
       return res.json()
     },
+    onMutate: async (collegeId) => {
+      await queryClient.cancelQueries({ queryKey: savedKeys.colleges() })
+      const previous = queryClient.getQueryData(savedKeys.colleges())
+
+      queryClient.setQueryData(savedKeys.colleges(), (old: any) => {
+        const existing = old?.data || []
+        return {
+          data: [
+            {
+              id: "optimistic-" + collegeId,
+              collegeId,
+              createdAt: new Date().toISOString(),
+              college: null,
+            },
+            ...existing,
+          ],
+        }
+      })
+
+      return { previous }
+    },
+    onError: (error: Error, collegeId, context) => {
+      queryClient.setQueryData(savedKeys.colleges(), context?.previous)
+      toast.error(error.message)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: savedKeys.colleges() })
       toast.success("College saved to your list")
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
     },
   })
 }
