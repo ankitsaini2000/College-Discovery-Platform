@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { collegeFilterSchema } from "@/lib/validations"
 import { handleApiError } from "@/lib/api-error"
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       sortOrder,
     } = parsed.data
 
-    const where: any = {}
+    const where: Prisma.CollegeWhereInput = {}
 
     if (search) {
       where.OR = [
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (type) {
-      where.type = type
+      where.type = type as Prisma.EnumCollegeTypeFilter["equals"]
     }
 
     if (exam) {
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       where.rating = { gte: minRating }
     }
 
-    const orderBy: any = {}
+    const orderBy: Prisma.CollegeOrderByWithRelationInput = {}
     orderBy[sortBy] = sortOrder
 
     const skip = (page - 1) * limit
@@ -119,10 +120,9 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / limit)
 
     return Response.json({
-      data: colleges.map((college) => ({
+      data: colleges.map(({ placements, ...college }) => ({
         ...college,
-        latestPlacement: college.placements[0] ?? null,
-        placements: undefined,
+        latestPlacement: placements[0] ?? null,
       })),
       pagination: {
         page,
