@@ -3,9 +3,10 @@
 import { useState, useOptimistic } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Star, ThumbsUp, ThumbsDown, PenLine, Loader2 } from "lucide-react"
+import { Star, ThumbsUp, ThumbsDown, PenLine, Loader2, CheckCircle } from "lucide-react"
 import { Button, Badge } from "@/components/ui"
 import { toast } from "sonner"
+import AuthPrompt from "@/components/shared/AuthPrompt"
 import type { ReviewWithUser } from "@/types"
 
 function formatDate(date: Date): string {
@@ -272,13 +273,19 @@ export default function ReviewsTab({
         </div>
 
         <div className="mt-6 border-t border-gray-100 pt-6">
-          {!session ? (
-            <Button variant="primary" onClick={() => router.push("/login")}>
-              <PenLine className="h-4 w-4" />
-              Log in to Write a Review
-            </Button>
+          {!currentUserId ? (
+            <AuthPrompt
+              message="Log in to write a review"
+              action="Log In to Review"
+              callbackUrl={`/colleges/${collegeSlug}`}
+            />
           ) : userReview ? (
-            <p className="text-sm text-gray-500">You have reviewed this college.</p>
+            <div className="flex items-center gap-2 text-green-600 bg-green-50 rounded-xl px-4 py-3">
+              <CheckCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">
+                You have already reviewed this college
+              </span>
+            </div>
           ) : showForm ? (
             <ReviewForm
               collegeSlug={collegeSlug}
@@ -302,7 +309,7 @@ export default function ReviewsTab({
           <div className="text-center py-12">
             <PenLine className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 mb-2">No reviews yet. Be the first to review this college!</p>
-            {session && !showForm && (
+            {currentUserId && !showForm && (
               <Button variant="primary" onClick={() => setShowForm(true)}>
                 <PenLine className="h-4 w-4" />
                 Write a Review

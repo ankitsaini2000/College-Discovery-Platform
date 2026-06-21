@@ -10,6 +10,7 @@ import {
   Award, BookOpen, TrendingUp, Users, IndianRupee, ExternalLink,
 } from "lucide-react"
 import { Button, Badge, Skeleton } from "@/components/ui"
+import AuthPrompt from "@/components/shared/AuthPrompt"
 import { useCompareStore } from "@/store/compareStore"
 import CollegeSearchModal from "./CollegeSearchModal"
 import { toast } from "sonner"
@@ -273,10 +274,14 @@ export default function CompareClient() {
           </div>
 
           <div className="flex items-center gap-3 mt-6">
-            <Button variant="primary" onClick={handleSaveComparison} disabled={saving}>
-              <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save This Comparison"}
-            </Button>
+            {!session ? (
+              <AuthPrompt message="Log in to save comparisons" action="Log In to Save" />
+            ) : (
+              <Button variant="primary" onClick={handleSaveComparison} disabled={saving}>
+                <Save className="h-4 w-4" />
+                {saving ? "Saving..." : "Save This Comparison"}
+              </Button>
+            )}
             <Button variant="ghost" onClick={clearAll} className="text-red-500 hover:text-red-600 hover:bg-red-50">
               <Trash2 className="h-4 w-4" />
               Clear All
