@@ -27,7 +27,7 @@ export default function CollegeDetailClient({
 
   return (
     <div>
-      <div className="flex border-b border-gray-200 bg-white sticky top-16 z-40 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex border-b border-gray-200 bg-white sticky top-16 z-40 overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
         {tabs.map((tab) => {
           let label = tab.label
           if (tab.id === "courses") label += ` (${college.courses.length})`

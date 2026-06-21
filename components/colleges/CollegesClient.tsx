@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Filter, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
+import { Filter, SlidersHorizontal, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
 import { Button, SkeletonCollegeGrid } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import FilterSidebar from "@/components/colleges/FilterSidebar"
+import BottomSheet from "@/components/shared/BottomSheet"
 import { useColleges } from "@/hooks/useColleges"
 import { useCollegeFilters } from "@/hooks/useCollegeFilters"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -19,7 +20,7 @@ const sortOptions = [
 ]
 
 export default function CollegesClient({ states }: { states: string[] }) {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const { setFilter, setFilters, getFilter, queryString, isPending, clearFilters } = useCollegeFilters()
 
   const [searchInput, setSearchInput] = useState(getFilter("search") ?? "")
@@ -81,10 +82,10 @@ export default function CollegesClient({ states }: { states: string[] }) {
             {isLoading ? "Loading..." : `${data?.pagination?.total || 0} colleges found`}
           </p>
           <button
-            onClick={() => setMobileFiltersOpen(true)}
-            className="lg:hidden flex items-center gap-2 text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
+            onClick={() => setIsFilterOpen(true)}
+            className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <Filter className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" />
             Filters
           </button>
           <select
@@ -179,25 +180,11 @@ export default function CollegesClient({ states }: { states: string[] }) {
       )}
       </div>
 
-      {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl leading-none"
-              >
-                &times;
-              </button>
-            </div>
-            <div className="p-4">
-              <FilterSidebar states={states} />
-            </div>
-          </div>
+      <BottomSheet isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} title="Filter Colleges">
+        <div className="p-4">
+          <FilterSidebar states={states} />
         </div>
-      )}
+      </BottomSheet>
     </>
   )
 }

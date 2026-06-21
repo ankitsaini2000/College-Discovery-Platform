@@ -90,7 +90,7 @@ export default function Navbar() {
               CollegeCompass
             </Link>
 
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
                 <NavLink key={link.href} href={link.href} label={link.label} />
               ))}
@@ -155,7 +155,7 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
                 <Link href="/login">
                   <Button variant="outline" size="sm">
                     <LogIn className="h-4 w-4" />
@@ -173,7 +173,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-blue-600 transition-colors"
+              className="lg:hidden p-2 text-gray-600 hover:text-blue-600 transition-colors"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -183,61 +183,94 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.href}
-                href={link.href}
-                label={link.label}
-                onClick={() => setMobileOpen(false)}
-              />
-            ))}
+        <div className="fixed inset-0 z-50 bg-white flex flex-col lg:hidden">
+          <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200">
+            <Link href="/" className="flex items-center gap-2 text-blue-600 font-bold text-xl">
+              <GraduationCap className="h-7 w-7" />
+              CollegeCompass
+            </Link>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+            {navLinks.map((link) => {
+              const active = isActive(link.href)
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`py-3 px-4 text-base font-medium rounded-xl block transition-colors ${
+                    active
+                      ? "text-blue-600 bg-blue-50 font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
             {status === "authenticated" && (
-              <NavLink
-                href="/dashboard"
-                label="Dashboard"
-                onClick={() => setMobileOpen(false)}
-              />
+              <>
+                <div className="border-t border-gray-100 my-2" />
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className={`py-3 px-4 text-base font-medium rounded-xl block transition-colors ${
+                    isActive("/dashboard")
+                      ? "text-blue-600 bg-blue-50 font-semibold"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              </>
             )}
           </div>
-          <div className="border-t border-gray-100 px-4 py-3 space-y-2">
+
+          <div className="border-t border-gray-200 px-4 py-4 space-y-2">
             {status === "authenticated" ? (
               <>
-                <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-500">
-                  <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold shrink-0">
                     {userInitial}
                   </div>
                   <div className="truncate">
-                    <p className="text-gray-900 font-medium truncate">
+                    <p className="text-sm font-medium text-gray-900 truncate">
                       {session.user?.name || "User"}
                     </p>
-                    <p className="text-xs truncate">{session.user?.email || ""}</p>
+                    <p className="text-xs text-gray-500 truncate">{session.user?.email || ""}</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => { signOut({ callbackUrl: "/" }); setMobileOpen(false) }}
+                  className="w-full flex items-center gap-2 px-3 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out
                 </button>
               </>
             ) : (
-              <div className="flex flex-col gap-2">
-                <Link href="/login" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full">
+              <>
+                <Link href="/login" onClick={() => setMobileOpen(false)} className="block">
+                  <Button variant="outline" className="w-full justify-center">
                     <LogIn className="h-4 w-4" />
                     Log in
                   </Button>
                 </Link>
-                <Link href="/signup" onClick={() => setMobileOpen(false)}>
-                  <Button variant="primary" size="sm" className="w-full">
+                <Link href="/signup" onClick={() => setMobileOpen(false)} className="block">
+                  <Button variant="primary" className="w-full justify-center">
                     <UserPlus className="h-4 w-4" />
                     Sign up
                   </Button>
                 </Link>
-              </div>
+              </>
             )}
           </div>
         </div>

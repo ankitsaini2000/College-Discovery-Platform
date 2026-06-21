@@ -62,6 +62,20 @@ export default function HeroSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)
+      ) {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [])
+
   const navigate = useCallback(
     (q: string) => {
       const trimmed = q.trim()
@@ -176,17 +190,20 @@ export default function HeroSearch() {
         )}
       </form>
 
-      <div className="flex flex-wrap justify-center gap-2 mt-5">
-        {quickFilters.map((filter) => (
-          <button
-            key={filter.href}
-            onClick={() => router.push(filter.href)}
-            className="bg-white/20 text-white border border-white/30 rounded-full px-4 py-1.5 text-sm hover:bg-white/30 cursor-pointer transition backdrop-blur-sm"
-          >
-            {filter.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-center gap-4 mt-5">
+        <div className="flex flex-wrap justify-center gap-2">
+          {quickFilters.map((filter) => (
+            <button
+              key={filter.href}
+              onClick={() => router.push(filter.href)}
+              className="bg-white/20 text-white border border-white/30 rounded-full px-4 py-1.5 text-sm hover:bg-white/30 cursor-pointer transition backdrop-blur-sm"
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
       </div>
+      <p className="text-center text-white/60 text-xs mt-3">Press <kbd className="bg-white/20 px-1.5 py-0.5 rounded text-white/80 text-xs font-mono">/</kbd> to search</p>
     </div>
   )
 }

@@ -31,7 +31,7 @@ export default function PlacementsTab({ placements }: { placements: Placement[] 
 
   return (
     <div className="space-y-8">
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
         {years.map((year) => (
           <button
             key={year}

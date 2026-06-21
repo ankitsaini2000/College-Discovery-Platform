@@ -104,11 +104,11 @@ export default function CompareClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-wrap items-start gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {storedColleges.map((college) => (
           <div
             key={college.id}
-            className="bg-white border border-gray-200 rounded-xl p-4 relative flex-1 min-w-[200px] max-w-sm"
+            className="bg-white border border-gray-200 rounded-xl p-4 relative"
           >
             <button
               onClick={() => removeCollege(college.id)}
@@ -140,7 +140,7 @@ export default function CompareClient() {
         {count < 3 && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 min-w-[200px] flex-1 h-full min-h-[160px] cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+            className="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 min-h-[160px] cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
           >
             <Plus className="h-8 w-8 text-gray-400" />
             <span className="text-sm text-gray-500 font-medium">Add College</span>
@@ -169,7 +169,9 @@ export default function CompareClient() {
 
       {colleges.length >= 2 && (
         <>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mt-6 overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 mt-6">
+            <div className="min-w-[600px] px-4 sm:px-0">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full border-collapse text-sm min-w-[600px]">
 
               <SectionHeader label="Basic Information" />
@@ -271,6 +273,8 @@ export default function CompareClient() {
                 })}
               />
             </table>
+          </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 mt-6">
