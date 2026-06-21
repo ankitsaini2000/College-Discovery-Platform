@@ -1,9 +1,8 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
-import { Button, Badge } from "@/components/ui"
-import { useQuery } from "@tanstack/react-query"
+import { Button } from "@/components/ui"
+import { useCollegeFilters } from "@/hooks/useCollegeFilters"
 
 const collegeTypes = [
   { label: "All Types", value: null },
@@ -33,10 +32,10 @@ const ratingOptions = [
 ]
 
 const feeRanges = [
-  { label: "Under ₹1L", minFees: "0", maxFees: "100000" },
-  { label: "₹1L - ₹5L", minFees: "100000", maxFees: "500000" },
-  { label: "₹5L - ₹10L", minFees: "500000", maxFees: "1000000" },
-  { label: "Above ₹10L", minFees: "1000000", maxFees: null },
+  { label: "Under ₹1L", value: "0-100000" },
+  { label: "₹1L - ₹5L", value: "100000-500000" },
+  { label: "₹5L - ₹10L", value: "500000-1000000" },
+  { label: "Above ₹10L", value: "1000000-" },
 ]
 
 interface FilterSidebarProps {
@@ -44,64 +43,32 @@ interface FilterSidebarProps {
 }
 
 export default function FilterSidebar({ states }: FilterSidebarProps) {
-  const searchParams = useSearchParams()
+  const { setFilter, setFilters, clearFilters, getFilter, hasActiveFilters, isPending } = useCollegeFilters()
 
-  function updateParam(key: string, value: string | null) {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value === null) {
-      params.delete(key)
-    } else {
-      params.set(key, value)
-    }
-    params.delete("page")
-    const qs = params.toString()
-    window.location.href = `/colleges${qs ? `?${qs}` : ""}`
+  const activeType = getFilter("type")
+  const activeExam = getFilter("exam")
+  const activeRating = getFilter("minRating")
+  const activeState = getFilter("state")
+  const activeFeeRange = getFilter("minFees") ? `${getFilter("minFees")}-${getFilter("maxFees") || ""}` : null
+
+  function isActive(key: string, value: string | null) {
+    if (value === null) return !getFilter(key as any)
+    return getFilter(key as any) === value
   }
-
-  function toggleFeeRange(minFees: string, maxFees: string | null) {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("minFees", minFees)
-    if (maxFees === null) {
-      params.delete("maxFees")
-    } else {
-      params.set("maxFees", maxFees)
-    }
-    params.delete("page")
-    window.location.href = `/colleges?${params.toString()}`
-  }
-
-  const isActive = (key: string, value: string | null) => {
-    if (value === null) return !searchParams.has(key)
-    return searchParams.get(key) === value
-  }
-
-  const hasAnyFilter =
-    searchParams.has("type") ||
-    searchParams.has("exam") ||
-    searchParams.has("minRating") ||
-    searchParams.has("state") ||
-    searchParams.has("minFees") ||
-    searchParams.has("search")
-
-  const activeType = searchParams.get("type")
-  const activeExam = searchParams.get("exam")
-  const activeRating = searchParams.get("minRating")
-  const activeState = searchParams.get("state")
-  const activeMinFees = searchParams.get("minFees")
 
   return (
-    <div className="w-full lg:w-72 space-y-6">
+    <div className={`w-full lg:w-72 space-y-6 transition-opacity duration-150 ${isPending ? "opacity-60 pointer-events-none" : ""}`}>
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search colleges..."
-            defaultValue={searchParams.get("search") || ""}
+            defaultValue={getFilter("search") || ""}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 const val = (e.target as HTMLInputElement).value.trim()
-                updateParam("search", val || null)
+                setFilter("search", val || null)
               }
             }}
             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
@@ -115,15 +82,13 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
           {collegeTypes.map((t) => (
             <label
               key={t.label}
-              className={`flex items-center gap-2 text-sm cursor-pointer ${
-                isActive("type", t.value) ? "text-blue-600 font-medium" : "text-gray-600"
-              }`}
+              className={`flex items-center gap-2 text-sm cursor-pointer ${isActive("type", t.value) ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
               <input
                 type="radio"
                 name="type"
                 checked={isActive("type", t.value)}
-                onChange={() => updateParam("type", t.value)}
+                onChange={() => setFilter("type", t.value)}
                 className="accent-blue-600"
               />
               {t.label}
@@ -138,15 +103,13 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
           {exams.map((exam) => (
             <label
               key={exam.label}
-              className={`flex items-center gap-2 text-sm cursor-pointer ${
-                isActive("exam", exam.value) ? "text-blue-600 font-medium" : "text-gray-600"
-              }`}
+              className={`flex items-center gap-2 text-sm cursor-pointer ${isActive("exam", exam.value) ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
               <input
                 type="radio"
                 name="exam"
                 checked={isActive("exam", exam.value)}
-                onChange={() => updateParam("exam", exam.value)}
+                onChange={() => setFilter("exam", exam.value)}
                 className="accent-blue-600"
               />
               {exam.label}
@@ -159,11 +122,14 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Annual Fees</h3>
         <div className="flex flex-wrap gap-2">
           {feeRanges.map((range) => {
-            const active = activeMinFees === range.minFees
+            const active = activeFeeRange === range.value
             return (
               <button
                 key={range.label}
-                onClick={() => toggleFeeRange(range.minFees, range.maxFees)}
+                onClick={() => {
+                  const [min, max] = range.value.split("-")
+                  setFilters({ minFees: min, maxFees: max || null })
+                }}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   active
                     ? "bg-blue-600 text-white border-blue-600"
@@ -183,15 +149,13 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
           {ratingOptions.map((opt) => (
             <label
               key={opt.value}
-              className={`flex items-center gap-2 text-sm cursor-pointer ${
-                isActive("minRating", opt.value) ? "text-blue-600 font-medium" : "text-gray-600"
-              }`}
+              className={`flex items-center gap-2 text-sm cursor-pointer ${isActive("minRating", opt.value) ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
               <input
                 type="radio"
                 name="rating"
                 checked={isActive("minRating", opt.value)}
-                onChange={() => updateParam("minRating", opt.value)}
+                onChange={() => setFilter("minRating", opt.value)}
                 className="accent-blue-600"
               />
               <div className="flex items-center gap-0.5">
@@ -220,7 +184,7 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">State</h3>
         <select
           value={activeState || ""}
-          onChange={(e) => updateParam("state", e.target.value || null)}
+          onChange={(e) => setFilter("state", e.target.value || null)}
           className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >
           <option value="">All States</option>
@@ -232,13 +196,11 @@ export default function FilterSidebar({ states }: FilterSidebarProps) {
         </select>
       </div>
 
-      {hasAnyFilter && (
+      {hasActiveFilters && (
         <Button
           variant="danger"
           className="w-full justify-center text-sm"
-          onClick={() => {
-            window.location.href = "/colleges"
-          }}
+          onClick={() => clearFilters()}
         >
           Clear All Filters
         </Button>

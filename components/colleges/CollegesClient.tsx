@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Filter, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Filter, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
 import { Button, SkeletonCollegeGrid } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import FilterSidebar from "@/components/colleges/FilterSidebar"
 import { useColleges } from "@/hooks/useColleges"
+import { useCollegeFilters } from "@/hooks/useCollegeFilters"
+import { useDebounce } from "@/hooks/useDebounce"
 import type { CollegeCard as CollegeCardType } from "@/types"
 
 const sortOptions = [
@@ -18,44 +19,30 @@ const sortOptions = [
 ]
 
 export default function CollegesClient({ states }: { states: string[] }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const { setFilter, setFilters, getFilter, queryString, isPending, clearFilters } = useCollegeFilters()
 
-  const paramsString = searchParams.toString()
+  const [searchInput, setSearchInput] = useState(getFilter("search") ?? "")
+  const debouncedSearch = useDebounce(searchInput, 400)
 
-  const { data, isLoading, isError, refetch } = useColleges(paramsString)
+  useEffect(() => {
+    setFilter("search", debouncedSearch || null)
+  }, [debouncedSearch])
 
-  const updateParam = useCallback(
-    (key: string, value: string | null) => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (value === null) {
-        params.delete(key)
-      } else {
-        if (key !== "page") {
-          params.delete("page")
-        }
-        params.set(key, value)
-      }
-      router.push(`${pathname}?${params.toString()}`)
-    },
-    [router, pathname, searchParams]
-  )
+  const { data, isLoading, isError, refetch } = useColleges(queryString)
 
   const currentSort = sortOptions.find(
     (s) =>
-      s.sortBy === (searchParams.get("sortBy") || "rating") &&
-      s.sortOrder === (searchParams.get("sortOrder") || "desc")
+      s.sortBy === (getFilter("sortBy") || "rating") &&
+      s.sortOrder === (getFilter("sortOrder") || "desc")
   ) || sortOptions[0]
 
-  const page = parseInt(searchParams.get("page") || "1")
+  const page = parseInt(getFilter("page") || "1")
   const totalPages = data?.pagination?.totalPages || 1
 
   function handleSortChange(sortKey: string) {
     const option = sortOptions[parseInt(sortKey)]
-    updateParam("sortBy", option.sortBy)
-    updateParam("sortOrder", option.sortOrder)
+    setFilters({ sortBy: option.sortBy, sortOrder: option.sortOrder })
   }
 
   function getPageNumbers(): (number | "...")[] {
@@ -76,11 +63,27 @@ export default function CollegesClient({ states }: { states: string[] }) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-gray-600">
-          {isLoading ? "Loading..." : `${data?.pagination?.total || 0} colleges found`}
-        </p>
-        <div className="flex items-center gap-3">
+      {isPending && (
+        <div className="h-0.5 bg-blue-600 animate-pulse rounded-full mb-2" />
+      )}
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search within results..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <p className="text-sm text-gray-600 whitespace-nowrap">
+            {isLoading ? "Loading..." : `${data?.pagination?.total || 0} colleges found`}
+          </p>
           <button
             onClick={() => setMobileFiltersOpen(true)}
             className="lg:hidden flex items-center gap-2 text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
@@ -116,10 +119,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
         <div className="text-center py-16">
           <p className="text-gray-500 text-lg mb-2">No colleges found</p>
           <p className="text-gray-400 text-sm mb-6">Try adjusting your filters</p>
-          <Button
-            variant="outline"
-            onClick={() => router.push(pathname)}
-          >
+          <Button variant="outline" onClick={() => { setSearchInput(""); clearFilters() }}>
             Clear All Filters
           </Button>
         </div>
@@ -138,7 +138,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-10">
               <button
-                onClick={() => updateParam("page", String(page - 1))}
+                onClick={() => setFilter("page", String(page - 1))}
                 disabled={page <= 1}
                 className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-white"
               >
@@ -152,7 +152,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
                 ) : (
                   <button
                     key={p}
-                    onClick={() => updateParam("page", String(p))}
+                    onClick={() => setFilter("page", String(p))}
                     className={`min-w-[36px] px-3 py-2 text-sm border rounded-lg transition-colors ${
                       p === page
                         ? "bg-blue-600 text-white border-blue-600"
@@ -165,7 +165,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
               )}
 
               <button
-                onClick={() => updateParam("page", String(page + 1))}
+                onClick={() => setFilter("page", String(page + 1))}
                 disabled={page >= totalPages}
                 className="flex items-center gap-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-white"
               >
@@ -199,3 +199,5 @@ export default function CollegesClient({ states }: { states: string[] }) {
     </>
   )
 }
+
+
