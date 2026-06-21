@@ -7,6 +7,7 @@ import { Button } from "@/components/ui"
 import { useSaveCollege, useUnsaveCollege } from "@/hooks/useSaved"
 import { useCompareStore } from "@/store/compareStore"
 import { useSavedIds } from "@/hooks/useSavedIds"
+import { toast } from "sonner"
 import type { CollegeCard } from "@/types"
 
 interface CollegeActionsProps {
@@ -20,7 +21,7 @@ export default function CollegeActions({ college, website }: CollegeActionsProps
   const saveCollege = useSaveCollege()
   const unsaveCollege = useUnsaveCollege()
   const { isSaved, getSavedId } = useSavedIds()
-  const { addCollege, removeCollege, isInCompare } = useCompareStore()
+  const { addCollege, removeCollege, isInCompare, canAdd } = useCompareStore()
 
   const saved = isSaved(college.id)
   const inCompare = isInCompare(college.id)
@@ -41,8 +42,12 @@ export default function CollegeActions({ college, website }: CollegeActionsProps
   function handleCompare() {
     if (inCompare) {
       removeCollege(college.id)
+      toast.info("Removed from comparison")
+    } else if (canAdd()) {
+      addCollege(college as CollegeCard)
+      toast.success("Added to comparison")
     } else {
-      addCollege(college)
+      toast.error("Maximum 3 colleges can be compared at once")
     }
   }
 
@@ -54,7 +59,7 @@ export default function CollegeActions({ college, website }: CollegeActionsProps
       </Button>
       <Button variant={inCompare ? "danger" : "secondary"} onClick={handleCompare}>
         <GitCompare className="h-4 w-4" />
-        {inCompare ? "Remove" : "Compare"}
+        {inCompare ? "✓ In Comparison" : "+ Compare"}
       </Button>
       {website && (
         <a href={website} target="_blank" rel="noopener noreferrer">

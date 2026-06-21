@@ -3,12 +3,12 @@
 import Link from "next/link"
 import { MapPin, Bookmark, Star } from "lucide-react"
 import { Card, Badge } from "@/components/ui"
+import { useCompareStore } from "@/store/compareStore"
+import { toast } from "sonner"
 import type { CollegeCard as CollegeCardType } from "@/types"
 
 function formatFees(fees: number): string {
-  if (fees >= 100000) {
-    return `₹${(fees / 100000).toFixed(1)}L`
-  }
+  if (fees >= 100000) return `₹${(fees / 100000).toFixed(1)}L`
   return `₹${fees.toLocaleString()}`
 }
 
@@ -28,8 +28,6 @@ interface CollegeCardProps {
   college: CollegeCardType
   isSaved?: boolean
   onSave?: (collegeId: string) => void
-  onAddToCompare?: (college: CollegeCardType) => void
-  isInCompare?: boolean
   showCompareButton?: boolean
 }
 
@@ -37,10 +35,25 @@ export default function CollegeCard({
   college,
   isSaved = false,
   onSave,
-  onAddToCompare,
-  isInCompare = false,
   showCompareButton = true,
 }: CollegeCardProps) {
+  const { addCollege, removeCollege, isInCompare, canAdd } = useCompareStore()
+  const inCompare = isInCompare(college.id)
+
+  function handleCompare() {
+    if (inCompare) {
+      removeCollege(college.id)
+      toast.info(`${college.name} removed from comparison`)
+    } else {
+      const result = addCollege(college)
+      if (result.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result.message)
+      }
+    }
+  }
+
   return (
     <Card hover className="group overflow-hidden p-0">
       <Link href={`/colleges/${college.slug}`}>
@@ -162,14 +175,17 @@ export default function CollegeCard({
       {showCompareButton && (
         <div className="border-t border-gray-100 px-5 py-3">
           <button
-            onClick={() => onAddToCompare?.(college)}
+            onClick={handleCompare}
+            disabled={!inCompare && !canAdd()}
             className={`w-full text-sm font-medium py-1.5 rounded-lg transition-colors ${
-              isInCompare
+              inCompare
                 ? "text-red-500 hover:bg-red-50"
-                : "text-blue-600 hover:bg-blue-50"
+                : canAdd()
+                ? "text-blue-600 hover:bg-blue-50"
+                : "text-gray-400 cursor-not-allowed bg-gray-50"
             }`}
           >
-            {isInCompare ? "Remove from Compare" : "+ Add to Compare"}
+            {inCompare ? "✓ In Comparison" : canAdd() ? "+ Add to Compare" : "Compare Full (max 3)"}
           </button>
         </div>
       )}

@@ -16,6 +16,7 @@ import {
   LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui"
+import { useCompareStore } from "@/store/compareStore"
 
 const navLinks = [
   { label: "Colleges", href: "/colleges" },
@@ -50,7 +51,7 @@ export default function Navbar() {
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/")
 
-  const compareCount = 0
+  const compareCount = useCompareStore((s) => s.colleges.length)
 
   const userInitial = session?.user?.name?.charAt(0)?.toUpperCase() || "U"
 
