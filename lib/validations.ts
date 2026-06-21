@@ -82,6 +82,7 @@ export const saveComparisonSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>
 export type SignupInput = z.infer<typeof signupSchema>
 export type CollegeFilterInput = z.infer<typeof collegeFilterSchema>
+export type CompareInput = z.infer<typeof compareSchema>
 export type ReviewInput = z.infer<typeof reviewSchema>
 export type PredictorInput = z.infer<typeof predictorSchema>
 export type SaveCollegeInput = z.infer<typeof saveCollegeSchema>
