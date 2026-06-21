@@ -2,12 +2,12 @@
 
 import { useState, useCallback } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { useQuery } from "@tanstack/react-query"
 import { Filter, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { Button, SkeletonCollegeGrid } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import FilterSidebar from "@/components/colleges/FilterSidebar"
-import type { CollegeCard as CollegeCardType, PaginatedResponse } from "@/types"
+import { useColleges } from "@/hooks/useColleges"
+import type { CollegeCard as CollegeCardType } from "@/types"
 
 const sortOptions = [
   { label: "Top Rated", sortBy: "rating", sortOrder: "desc" },
@@ -25,14 +25,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
 
   const paramsString = searchParams.toString()
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["colleges", paramsString],
-    queryFn: async () => {
-      const res = await fetch(`/api/colleges?${paramsString}`)
-      if (!res.ok) throw new Error("Failed to fetch")
-      return res.json() as Promise<PaginatedResponse<CollegeCardType>>
-    },
-  })
+  const { data, isLoading, isError, refetch } = useColleges(paramsString)
 
   const updateParam = useCallback(
     (key: string, value: string | null) => {

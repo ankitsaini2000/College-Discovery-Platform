@@ -1,15 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Bookmark, GitCompare, Plus, Trash2, ExternalLink, Search, Loader2 } from "lucide-react"
-import { Button, Badge, Skeleton } from "@/components/ui"
+import { Bookmark, GitCompare, Plus, Trash2, ExternalLink } from "lucide-react"
+import { Button, Skeleton } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import { useCompareStore } from "@/store/compareStore"
-import { toast } from "sonner"
-import type { SavedCollegeWithCollege, SavedComparisonWithColleges, CollegeCard as CollegeCardType } from "@/types"
+import { useSavedColleges, useSavedComparisons, useUnsaveCollege, useDeleteComparison } from "@/hooks/useSaved"
+import type { SavedComparisonWithColleges, CollegeCard as CollegeCardType } from "@/types"
 
 interface DashboardClientProps {
   userId: string
@@ -19,7 +18,6 @@ type Tab = "saved" | "comparisons"
 
 export default function DashboardClient({ userId }: DashboardClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>("saved")
-  const queryClient = useQueryClient()
   const router = useRouter()
   const { addCollege, clearAll } = useCompareStore()
 
@@ -27,61 +25,35 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
     data: savedCollegesData,
     isLoading: collegesLoading,
     isError: collegesError,
-  } = useQuery({
-    queryKey: ["saved-colleges"],
-    queryFn: async () => {
-      const res = await fetch("/api/saved/colleges")
-      if (!res.ok) throw new Error("Failed to fetch saved colleges")
-      const json = await res.json()
-      return json.data as SavedCollegeWithCollege[]
-    },
-  })
+    refetch: refetchColleges,
+  } = useSavedColleges()
 
   const {
     data: comparisonsData,
     isLoading: comparisonsLoading,
     isError: comparisonsError,
-  } = useQuery({
-    queryKey: ["saved-comparisons"],
-    queryFn: async () => {
-      const res = await fetch("/api/saved/comparisons")
-      if (!res.ok) throw new Error("Failed to fetch saved comparisons")
-      const json = await res.json()
-      return json.data as SavedComparisonWithColleges[]
-    },
-  })
+    refetch: refetchComparisons,
+  } = useSavedComparisons()
 
-  const savedColleges = savedCollegesData || []
-  const comparisons = comparisonsData || []
+  const unsaveCollege = useUnsaveCollege()
+  const deleteComparison = useDeleteComparison()
+
+  const savedColleges = savedCollegesData?.data || []
+  const comparisons = comparisonsData?.data || []
 
   function formatDate(dateStr: string | Date) {
     const d = new Date(dateStr)
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
   }
 
-  async function handleRemoveSaved(collegeId: string) {
+  function handleRemoveSaved(collegeId: string) {
     const savedRecord = savedColleges.find((s) => s.collegeId === collegeId)
     if (!savedRecord) return
-
-    try {
-      const res = await fetch(`/api/saved/colleges/${savedRecord.id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("Failed to remove")
-      toast.success("College removed from saved")
-      queryClient.invalidateQueries({ queryKey: ["saved-colleges"] })
-    } catch {
-      toast.error("Failed to remove college")
-    }
+    unsaveCollege.mutate(savedRecord.id)
   }
 
-  async function handleDeleteComparison(comparisonId: string) {
-    try {
-      const res = await fetch(`/api/saved/comparisons/${comparisonId}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("Failed to delete")
-      toast.success("Comparison deleted")
-      queryClient.invalidateQueries({ queryKey: ["saved-comparisons"] })
-    } catch {
-      toast.error("Failed to delete comparison")
-    }
+  function handleDeleteComparison(comparisonId: string) {
+    deleteComparison.mutate(comparisonId)
   }
 
   function handleViewComparison(comparison: SavedComparisonWithColleges) {
@@ -151,7 +123,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
           {collegesError && (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">Failed to load saved colleges</p>
-              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["saved-colleges"] })}>
+              <Button variant="outline" onClick={() => refetchColleges()}>
                 Try Again
               </Button>
             </div>
@@ -211,7 +183,7 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
           {comparisonsError && (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">Failed to load saved comparisons</p>
-              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["saved-comparisons"] })}>
+              <Button variant="outline" onClick={() => refetchComparisons()}>
                 Try Again
               </Button>
             </div>

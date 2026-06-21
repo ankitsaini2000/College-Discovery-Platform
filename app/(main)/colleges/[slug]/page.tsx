@@ -3,9 +3,10 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
-import { GraduationCap, MapPin, Calendar, Award, ExternalLink, Bookmark, GitCompare, Star } from "lucide-react"
-import { Badge, Button } from "@/components/ui"
+import { GraduationCap, MapPin, Calendar, Award, Star } from "lucide-react"
+import { Badge } from "@/components/ui"
 import CollegeDetailClient from "@/components/colleges/CollegeDetailClient"
+import CollegeActions from "@/components/colleges/CollegeActions"
 
 export async function generateMetadata({
   params,
@@ -111,24 +112,29 @@ export default async function CollegeDetailPage({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-              <Button variant="outline">
-                <Bookmark className="h-4 w-4" />
-                Save College
-              </Button>
-              <Button variant="secondary">
-                <GitCompare className="h-4 w-4" />
-                Compare
-              </Button>
-              {college.website && (
-                <a href={college.website} target="_blank" rel="noopener noreferrer">
-                  <Button variant="ghost">
-                    <ExternalLink className="h-4 w-4" />
-                    Visit Website
-                  </Button>
-                </a>
-              )}
-            </div>
+            <CollegeActions
+              college={{
+                id: college.id,
+                name: college.name,
+                slug: college.slug,
+                city: college.city,
+                state: college.state,
+                fees: college.fees,
+                rating: college.rating,
+                reviewCount: college._count.reviews,
+                imageUrl: college.imageUrl,
+                type: college.type,
+                accreditation: college.accreditation,
+                established: college.established,
+                latestPlacement: latestPlacement ? {
+                  averagePackage: latestPlacement.averagePackage,
+                  highestPackage: latestPlacement.highestPackage,
+                  placementRate: latestPlacement.placementRate,
+                  year: latestPlacement.year,
+                } : null,
+              }}
+              website={college.website}
+            />
           </div>
         </div>
       </div>
