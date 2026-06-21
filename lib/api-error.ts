@@ -9,6 +9,8 @@ export class ApiError extends Error {
 }
 
 export function handleApiError(error: unknown) {
+  console.error("[API Error]:", error)
+
   if (error instanceof ApiError) {
     return Response.json(
       { error: error.message },
@@ -16,7 +18,30 @@ export function handleApiError(error: unknown) {
     )
   }
 
-  console.error("Unexpected error:", error)
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  ) {
+    return Response.json(
+      { error: "This record already exists" },
+      { status: 409 }
+    )
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2025"
+  ) {
+    return Response.json(
+      { error: "Record not found" },
+      { status: 404 }
+    )
+  }
+
   return Response.json(
     { error: "Internal server error" },
     { status: 500 }
