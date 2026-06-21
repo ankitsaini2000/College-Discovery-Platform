@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { GraduationCap, MapPin, Heart, Database, Search, GitCompare, Sparkles, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui"
 import HeroSearch from "@/components/shared/HeroSearch"
+import CollegeCard from "@/components/colleges/CollegeCard"
 
 const features = [
   {
@@ -43,11 +44,29 @@ export default async function HomePage() {
         reviewCount: true,
         imageUrl: true,
         type: true,
+        accreditation: true,
+        established: true,
+        placements: {
+          orderBy: { year: "desc" },
+          take: 1,
+          select: {
+            averagePackage: true,
+            highestPackage: true,
+            placementRate: true,
+            year: true,
+          },
+        },
       },
     }),
   ])
 
   const totalStates = statesResult.length
+
+  const featuredColleges = topColleges.map((c) => ({
+    ...c,
+    latestPlacement: c.placements[0] ?? null,
+    placements: undefined,
+  }))
 
   return (
     <>
@@ -111,38 +130,12 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topColleges.map((college) => (
-              <Link
+            {featuredColleges.map((college) => (
+              <CollegeCard
                 key={college.id}
-                href={`/colleges/${college.slug}`}
-                className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow block"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded">
-                    {college.type.replace(/_/g, " ")}
-                  </div>
-                  {college.rating && (
-                    <div className="flex items-center gap-1 text-yellow-500 text-sm font-semibold">
-                      <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                      {college.rating.toFixed(1)}
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{college.name}</h3>
-                <p className="text-sm text-gray-500 mb-3">
-                  {college.city}, {college.state}
-                </p>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    {college.reviewCount} reviews
-                  </span>
-                  {college.fees && (
-                    <span className="text-gray-900 font-medium">
-                      &#x20B9;{(college.fees / 1000).toFixed(0)}K
-                    </span>
-                  )}
-                </div>
-              </Link>
+                college={college}
+                showCompareButton={false}
+              />
             ))}
           </div>
 
