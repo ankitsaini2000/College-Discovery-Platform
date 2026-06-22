@@ -17,27 +17,18 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
-  const [resending, setResending] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!email || !password) return
 
     setIsLoading(true)
-    setUnverifiedEmail(null)
 
     const result = await signIn("credentials", {
       email,
       password,
       redirect: false,
     })
-
-    if (result?.error === "EmailNotVerified") {
-      setUnverifiedEmail(email)
-      setIsLoading(false)
-      return
-    }
 
     if (result?.error) {
       toast.error("Invalid email or password")
@@ -48,31 +39,6 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
     toast.success("Welcome back!")
     router.push(callbackUrl || "/dashboard")
     router.refresh()
-  }
-
-  async function handleResend() {
-    if (!unverifiedEmail) return
-    setResending(true)
-
-    try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: unverifiedEmail }),
-      })
-
-      const data = await res.json()
-      if (res.ok) {
-        toast.success("Verification email sent! Check your inbox.")
-        setUnverifiedEmail(null)
-      } else {
-        toast.error(data.error || "Failed to resend")
-      }
-    } catch {
-      toast.error("Something went wrong")
-    } finally {
-      setResending(false)
-    }
   }
 
   return (
@@ -140,23 +106,6 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
             </button>
           </div>
         </div>
-
-        {unverifiedEmail && (
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
-            <p className="text-sm font-medium text-amber-800 mb-1">Email not verified</p>
-            <p className="text-xs text-amber-700 mb-3">
-              Please check your inbox for the verification link. Didn't receive it?
-            </p>
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className="text-xs font-medium text-amber-800 underline hover:text-amber-900 disabled:opacity-50"
-            >
-              {resending ? "Sending..." : "Resend verification email"}
-            </button>
-          </div>
-        )}
 
         <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={isLoading}>
           Log In

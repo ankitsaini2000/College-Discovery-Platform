@@ -5,10 +5,6 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { signupSchema } from "@/lib/validations"
 import { ApiError, handleApiError } from "@/lib/api-error"
-import {
-  generateVerificationToken,
-  sendVerificationEmail,
-} from "@/lib/email"
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,32 +34,24 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        emailVerified: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
       },
     })
-
-    const token = generateVerificationToken()
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    })
-
-    const emailSent = await sendVerificationEmail(email, name, token)
 
     return Response.json(
       {
-        message: emailSent
-          ? "Account created. Check your email for a verification link."
-          : "Account created, but we couldn't send a verification email. Please contact support.",
+        data: user,
+        message: "Account created successfully. Please log in.",
       },
       { status: 201 }
     )
