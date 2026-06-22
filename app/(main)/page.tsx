@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { GraduationCap, MapPin, Heart, Database, Search, GitCompare, Sparkles, ArrowRight, Building2 } from "lucide-react"

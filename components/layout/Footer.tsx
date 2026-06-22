@@ -72,6 +72,9 @@ export default function Footer() {
           <p className="text-gray-500 text-sm">
             Built with Next.js, PostgreSQL and Prisma
           </p>
+          <p className="text-gray-500 text-sm font-medium">
+            Made by Ankit Saini
+          </p>
           <p className="text-gray-500 text-sm">
             Made for the CollegeCompass internship demo
           </p>
