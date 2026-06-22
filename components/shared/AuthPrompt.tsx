@@ -8,17 +8,21 @@ interface AuthPromptProps {
   message?: string
   action?: string
   callbackUrl?: string
+  overlay?: boolean
 }
 
 export default function AuthPrompt({
   message = "You need to be logged in to do this",
   action = "Log In",
   callbackUrl,
+  overlay = false,
 }: AuthPromptProps) {
   const router = useRouter()
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-50 rounded-xl border border-gray-200">
+    <div className={`flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-50/90 rounded-xl border border-gray-200 ${
+      overlay ? "absolute inset-0 z-10 backdrop-blur-[2px]" : ""
+    }`}>
       <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
         <Lock className="w-6 h-6 text-blue-600" />
       </div>

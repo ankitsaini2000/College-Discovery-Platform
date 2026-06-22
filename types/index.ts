@@ -39,6 +39,7 @@ export type CollegeCard = Pick<
   | "type"
   | "accreditation"
   | "established"
+  | "nirfRank"
 > & {
   latestPlacement?: Pick<
     Placement,
@@ -93,6 +94,7 @@ export type CollegeFilters = {
   limit?: number
   sortBy?: string
   sortOrder?: string
+  instituteType?: string // 'IIT' | 'NIT' | 'ALL'
 }
 
 export type PredictorInput = {
@@ -100,12 +102,17 @@ export type PredictorInput = {
   rank: number
   category: Category
   year: number
+  quota?: string | null
+  gender?: string | null
 }
 
 export type PredictorResult = {
   cutoffId: string
   college: CollegeCard
-  cutoff: Pick<CutoffRank, "minRank" | "maxRank" | "course" | "exam" | "year" | "category">
+  cutoff: Pick<CutoffRank, "minRank" | "maxRank" | "course" | "exam" | "year" | "category"> & {
+    quota?: string | null
+    gender?: string | null
+  }
   chanceLevel: "SAFE" | "MODERATE" | "REACH"
   chancePercentage: number
 }

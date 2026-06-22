@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/session"
-import { GraduationCap, MapPin, Calendar, Award, Star } from "lucide-react"
+import { MapPin, Calendar, Award, Star } from "lucide-react"
 import { Badge } from "@/components/ui"
 import CollegeDetailClient from "@/components/colleges/CollegeDetailClient"
 import CollegeActions from "@/components/colleges/CollegeActions"
@@ -63,13 +64,33 @@ export default async function CollegeDetailPage({
         </div>
       </div>
 
-      <div className="bg-white border-b border-gray-200 py-8">
+      {/* Hero Banner */}
+      {college.imageUrl && (
+        <div className="relative w-full h-[300px] lg:h-[400px]">
+          <Image
+            src={college.imageUrl}
+            alt={college.name}
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+        </div>
+      )}
+
+      <div className={`bg-white border-b border-gray-200 py-8 ${college.imageUrl ? "-mt-8 relative z-10 rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)]" : ""}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex-1 min-w-0">
               <Badge variant={college.type === "GOVERNMENT" ? "success" : college.type === "PRIVATE" ? "info" : "default"} size="md">
-                {college.type.replace(/_/g, " ")}
+                {college.slug.startsWith("iit-") ? "IIT" : college.slug.match(/^(nit-|mnit-|mnnit-|vnit-|svnit-)/) ? "NIT" : college.type.replace(/_/g, " ")}
               </Badge>
+              {college.nirfRank && (
+                <Badge variant="info" size="md" className="ml-2">
+                  <Award className="h-3.5 w-3.5" />
+                  NIRF Rank #{college.nirfRank}
+                </Badge>
+              )}
               <h1 className="text-3xl font-bold text-gray-900 mt-2">{college.name}</h1>
 
               <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
@@ -126,6 +147,7 @@ export default async function CollegeDetailPage({
                 type: college.type,
                 accreditation: college.accreditation,
                 established: college.established,
+                nirfRank: college.nirfRank,
                 latestPlacement: latestPlacement ? {
                   averagePackage: latestPlacement.averagePackage,
                   highestPackage: latestPlacement.highestPackage,
@@ -141,7 +163,7 @@ export default async function CollegeDetailPage({
 
       <div className="bg-gray-50 border-b border-gray-200 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-gray-900">
                 {college.fees ? `₹${(college.fees / 100000).toFixed(1)}L` : "N/A"}
@@ -164,6 +186,12 @@ export default async function CollegeDetailPage({
               <p className="text-2xl font-bold text-gray-900">{college.courses.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">Total Courses</p>
             </div>
+            {college.campusSize && (
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{college.campusSize}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Campus</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

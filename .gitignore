@@ -32,6 +32,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# scraper cache (filenames too long for Windows git)
+scripts/scraper/data/
+scripts/scraper/node_modules/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

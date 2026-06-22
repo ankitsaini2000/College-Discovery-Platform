@@ -15,13 +15,7 @@ const collegeTypes = [
 const exams = [
   { label: "All Exams", value: null },
   { label: "JEE Main", value: "JEE_MAIN" },
-  { label: "JEE Advanced", value: "JEE_ADVANCED" },
-  { label: "NEET", value: "NEET" },
-  { label: "CAT", value: "CAT" },
-  { label: "GATE", value: "GATE" },
-  { label: "XAT", value: "XAT" },
-  { label: "CLAT", value: "CLAT" },
-  { label: "State CET", value: "STATE_CET" },
+  { label: "JEE Advanced", value: "JEE_ADVANCED" }
 ]
 
 const ratingOptions = [

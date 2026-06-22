@@ -6,12 +6,12 @@ import CollegesClient from "@/components/colleges/CollegesClient"
 import FilterSidebar from "@/components/colleges/FilterSidebar"
 
 export const metadata: Metadata = {
-  title: "Browse Colleges",
-  description: "Search and filter colleges across India by exam, location, fees and more",
+  title: "Explore IITs & NITs | All 23 IITs & 31 NITs",
+  description: "Browse all IITs and NITs in India. Filter by state, compare fees, placements, NIRF rankings and JoSAA cutoff data.",
 }
 
 export default async function CollegesPage({
-  searchParams,
+  searchParams: _searchParams,
 }: {
   searchParams: Record<string, string>
 }) {
@@ -27,8 +27,8 @@ export default async function CollegesPage({
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold text-gray-900">Colleges in India</h1>
-          <p className="text-gray-600 mt-1">Discover {total} colleges across India</p>
+          <h1 className="text-3xl font-bold text-gray-900">Explore IITs & NITs</h1>
+          <p className="text-gray-600 mt-1">Browse all {total} IITs and NITs across India — with real data</p>
         </div>
       </div>
 

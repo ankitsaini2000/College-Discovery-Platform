@@ -1,22 +1,18 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Link from "next/link"
+import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { Search, Loader2, ChevronDown, ChevronUp } from "lucide-react"
-import { Button, Badge, Skeleton } from "@/components/ui"
+import { Button, Badge } from "@/components/ui"
+import AuthPrompt from "@/components/shared/AuthPrompt"
 import PredictorResultCard from "./PredictorResultCard"
 import { useCompareStore } from "@/store/compareStore"
 import type { PredictorResponse, PredictorResult } from "@/types"
 
 const EXAMS = [
-  { value: "JEE_MAIN", label: "JEE Main" },
-  { value: "JEE_ADVANCED", label: "JEE Advanced" },
-  { value: "NEET", label: "NEET" },
-  { value: "CAT", label: "CAT" },
-  { value: "GATE", label: "GATE" },
-  { value: "XAT", label: "XAT" },
-  { value: "CLAT", label: "CLAT" },
-  { value: "STATE_CET", label: "State CET" },
+  { value: "JEE_ADVANCED", label: "JEE Advanced", description: "For IIT admissions", icon: "🏛️" },
+  { value: "JEE_MAIN", label: "JEE Main", description: "For NIT admissions", icon: "🎓" },
 ]
 
 const CATEGORIES = [
@@ -27,44 +23,43 @@ const CATEGORIES = [
   { value: "EWS", label: "EWS (Economically Weaker Section)" },
 ]
 
+const QUOTAS = [
+  { value: "", label: "All Quotas" },
+  { value: "AI", label: "All India (AI)" },
+  { value: "OS", label: "Other State (OS)" },
+  { value: "HS", label: "Home State (HS)" },
+]
+
 const YEARS = [
-  { value: 2024, label: "2024 (Recommended)" },
+  { value: 2024, label: "2024 (Latest)" },
   { value: 2023, label: "2023" },
-  { value: 2022, label: "2022" },
 ]
 
 const LOADING_MESSAGES = [
   "Analyzing your rank...",
-  "Matching with cutoff data...",
+  "Matching with JoSAA cutoff data...",
+  "Finding colleges for you...",
   "Preparing your results...",
 ]
 
 function getRankPlaceholder(exam: string) {
   switch (exam) {
-    case "JEE_MAIN": return "Enter rank (1 – 1,000,000)"
-    case "JEE_ADVANCED": return "Enter rank (1 – 50,000)"
-    case "NEET": return "Enter rank (1 – 1,000,000)"
-    case "CAT": return "Enter percentile rank (1 – 100)"
-    default: return "Enter your rank"
-  }
-}
-
-function getRankHint(exam: string) {
-  switch (exam) {
-    case "JEE_MAIN": return "Enter your JEE Main All India Rank"
-    case "JEE_ADVANCED": return "Enter your JEE Advanced All India Rank"
-    case "NEET": return "Enter your NEET All India Rank"
-    case "CAT": return "Enter your overall rank (not percentile)"
-    default: return ""
+    case "JEE_MAIN": return "Enter your JEE Main rank (1 – 250,000)"
+    case "JEE_ADVANCED": return "Enter your JEE Advanced rank (1 – 50,000)"
+    default: return "Select exam first"
   }
 }
 
 export default function PredictorClient() {
+  const { data: session } = useSession()
+  const pathname = usePathname()
   const [formData, setFormData] = useState({
     exam: "",
     rank: "",
     category: "GENERAL",
     year: "2024",
+    quota: "",
+    gender: "Gender-Neutral",
   })
   const [results, setResults] = useState<PredictorResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -104,6 +99,9 @@ export default function PredictorClient() {
         category: formData.category,
         year: formData.year,
       })
+
+      if (formData.quota) params.set("quota", formData.quota)
+      if (formData.gender) params.set("gender", formData.gender)
 
       const res = await fetch(`/api/predict?${params}`)
       const json = await res.json()
@@ -160,25 +158,38 @@ export default function PredictorClient() {
             <div className="flex items-center gap-3">
               <span className="text-2xl">{icon}</span>
               <h3 className="text-xl font-bold text-gray-900">{label}</h3>
-              <Badge variant={badgeVariant} size="sm">{resultsArr.length} colleges</Badge>
+              <Badge variant={badgeVariant} size="sm">{resultsArr.length} results</Badge>
             </div>
             <p className="text-sm text-gray-500 mt-1">{description}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {displayed.map((result) => (
-            <PredictorResultCard
-              key={result.cutoffId}
-              result={result}
-              chanceLevel={result.chanceLevel}
-              onAddCompare={addCollege}
-              isInCompare={isInCompare}
-            />
-          ))}
+        <div className="relative">
+          {!session && displayed.length > 1 && (
+            <div className="absolute inset-x-0 bottom-0 top-[180px] z-10 flex flex-col items-center justify-center">
+              <AuthPrompt
+                overlay
+                message="Sign in to view all predictable branches"
+                action="Sign In to Unlock"
+                callbackUrl={pathname}
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {displayed.map((result, idx) => (
+              <div key={result.cutoffId} className={!session && idx > 0 ? "filter blur-[5px] select-none pointer-events-none" : ""}>
+                <PredictorResultCard
+                  result={result}
+                  chanceLevel={result.chanceLevel}
+                  onAddCompare={addCollege}
+                  isInCompare={isInCompare}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
-        {resultsArr.length > showLimit && (
+        {session && resultsArr.length > showLimit && (
           <button
             onClick={() => toggleSection(sectionKey)}
             className="mt-4 w-full py-3 text-sm text-blue-600 hover:text-blue-700 font-medium border border-dashed border-gray-300 rounded-lg hover:border-blue-300 transition-colors flex items-center justify-center gap-2"
@@ -186,7 +197,7 @@ export default function PredictorClient() {
             {isExpanded ? (
               <>Show Less <ChevronUp className="h-4 w-4" /></>
             ) : (
-              <>Show {remaining} More Colleges <ChevronDown className="h-4 w-4" /></>
+              <>Show {remaining} More Results <ChevronDown className="h-4 w-4" /></>
             )}
           </button>
         )}
@@ -196,24 +207,33 @@ export default function PredictorClient() {
 
   return (
     <>
-      <div ref={formRef} className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Exam <span className="text-red-500">*</span></label>
-              <select
-                value={formData.exam}
-                onChange={(e) => updateField("exam", e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"
-              >
-                <option value="" disabled>-- Select Exam --</option>
-                {EXAMS.map((ex) => (
-                  <option key={ex.value} value={ex.value}>{ex.label}</option>
-                ))}
-              </select>
+      <div ref={formRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
+          {/* Exam Selection - Card Style */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Select Exam <span className="text-red-500">*</span></label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {EXAMS.map((ex) => (
+                <button
+                  key={ex.value}
+                  onClick={() => updateField("exam", ex.value)}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                    formData.exam === ex.value
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <span className="text-2xl">{ex.icon}</span>
+                  <div>
+                    <p className={`font-semibold ${formData.exam === ex.value ? "text-blue-700" : "text-gray-900"}`}>{ex.label}</p>
+                    <p className="text-xs text-gray-500">{ex.description}</p>
+                  </div>
+                </button>
+              ))}
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Your Rank <span className="text-red-500">*</span></label>
               <input
@@ -225,12 +245,14 @@ export default function PredictorClient() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {formData.exam && (
-                <p className="text-xs text-gray-400 mt-1">{getRankHint(formData.exam)}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formData.exam === "JEE_ADVANCED" ? "Enter your JEE Advanced All India Rank (AIR)" : "Enter your JEE Main All India Rank (AIR)"}
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Your Category</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
               <select
                 value={formData.category}
                 onChange={(e) => updateField("category", e.target.value)}
@@ -241,6 +263,23 @@ export default function PredictorClient() {
                 ))}
               </select>
             </div>
+
+            {/* Show Quota selector only for JEE Main (NITs) */}
+            {formData.exam === "JEE_MAIN" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Quota</label>
+                <select
+                  value={formData.quota}
+                  onChange={(e) => updateField("quota", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"
+                >
+                  {QUOTAS.map((q) => (
+                    <option key={q.value} value={q.value}>{q.label}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1">NITs have Home State & Other State quotas</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Cutoff Year</label>
@@ -259,16 +298,16 @@ export default function PredictorClient() {
           <Button
             variant="primary"
             size="lg"
-            className="w-full mt-5"
+            className="w-full mt-6"
             onClick={handlePredict}
             disabled={!formData.exam || !formData.rank || isLoading}
             isLoading={isLoading}
           >
-            {isLoading ? "Predicting..." : "Predict My Colleges"}
+            {isLoading ? "Predicting..." : formData.exam === "JEE_ADVANCED" ? "🏛️ Predict My IIT" : formData.exam === "JEE_MAIN" ? "🎓 Predict My NIT" : "Predict My Colleges"}
           </Button>
 
           <p className="text-xs text-gray-400 text-center mt-3">
-            ⓘ Predictions are based on previous year cutoff data. Actual cutoffs may vary. Use this as a reference only.
+            ⓘ Predictions based on JoSAA {formData.year || "2024"} cutoff data. Actual cutoffs may vary. Use as reference only.
           </p>
         </div>
       </div>
@@ -309,25 +348,25 @@ export default function PredictorClient() {
                 <span className="text-lg">🟢</span>
                 <div>
                   <p className="text-sm font-semibold text-green-700">Safe</p>
-                  <p className="text-xs text-green-600">{results.results.safe.length} colleges</p>
+                  <p className="text-xs text-green-600">{results.results.safe.length} results</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-4 py-2.5 bg-yellow-50 rounded-lg border border-yellow-200">
                 <span className="text-lg">🟡</span>
                 <div>
                   <p className="text-sm font-semibold text-yellow-700">Moderate</p>
-                  <p className="text-xs text-yellow-600">{results.results.moderate.length} colleges</p>
+                  <p className="text-xs text-yellow-600">{results.results.moderate.length} results</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 rounded-lg border border-red-200">
                 <span className="text-lg">🔴</span>
                 <div>
                   <p className="text-sm font-semibold text-red-700">Reach</p>
-                  <p className="text-xs text-red-600">{results.results.reach.length} colleges</p>
+                  <p className="text-xs text-red-600">{results.results.reach.length} results</p>
                 </div>
               </div>
               <div className="flex items-center px-4 py-2.5 text-sm text-gray-500">
-                Total: <span className="font-semibold text-gray-900 ml-1">{results.totalFound} colleges</span> matched your criteria
+                Total: <span className="font-semibold text-gray-900 ml-1">{results.totalFound} results</span> matched
               </div>
             </div>
           </div>
@@ -336,14 +375,14 @@ export default function PredictorClient() {
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
               <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No colleges found for your criteria</h3>
-              <p className="text-gray-500 mb-6">Try adjusting your rank or selecting a different category or year</p>
+              <p className="text-gray-500 mb-6">Try adjusting your rank, category or quota selection</p>
               <Button variant="primary" onClick={scrollToForm}>Modify Search</Button>
             </div>
           ) : (
             <div className="space-y-6">
-              {renderResultsSection("Safe Colleges", "🟢", results.results.safe, "safe", "border-green-500", "success", "Your rank is well within the closing rank. High chance of admission.")}
-              {renderResultsSection("Moderate Colleges", "🟡", results.results.moderate, "moderate", "border-yellow-500", "warning", "Your rank is near the closing rank. Moderate chance of admission.")}
-              {renderResultsSection("Reach Colleges", "🔴", results.results.reach, "reach", "border-red-500", "danger", "Your rank is slightly above last year's closing rank. Apply as backup options.")}
+              {renderResultsSection("Safe Choices", "🟢", results.results.safe, "safe", "border-green-500", "success", "Your rank is well within the closing rank. High chance of admission.")}
+              {renderResultsSection("Moderate Chances", "🟡", results.results.moderate, "moderate", "border-yellow-500", "warning", "Your rank is near the closing rank. Moderate chance of admission.")}
+              {renderResultsSection("Reach Options", "🔴", results.results.reach, "reach", "border-red-500", "danger", "Your rank is slightly above last year's closing rank. Apply as backup.")}
             </div>
           )}
         </div>

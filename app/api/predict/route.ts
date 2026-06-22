@@ -11,11 +11,11 @@ function calculateChancePercentage(
   if (userRank <= minRank) return 99
   if (userRank > maxRank) {
     const overBy = userRank - maxRank
-    const rangeSize = maxRank - minRank
+    const rangeSize = maxRank - minRank || 1
     const chance = Math.max(10, 30 - (overBy / rangeSize) * 30)
     return Math.round(chance)
   }
-  const rangeSize = maxRank - minRank
+  const rangeSize = maxRank - minRank || 1
   const positionInRange = userRank - minRank
   const chance = 99 - (positionInRange / rangeSize) * 49
   return Math.round(chance)
@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
       rank: searchParams.get("rank"),
       category: searchParams.get("category") || "GENERAL",
       year: searchParams.get("year") || "2024",
+      quota: searchParams.get("quota") || undefined,
+      gender: searchParams.get("gender") || undefined,
     }
 
     const parsed = predictorSchema.safeParse(rawParams)
@@ -41,18 +43,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { exam, rank, category, year } = parsed.data
+    const { exam, rank, category, year, quota, gender } = parsed.data
 
-    const reachMultiplier = 1.15
+    const reachMultiplier = 1.25
+
+    // Build where clause with optional quota and gender filters
+    const whereClause: Record<string, unknown> = {
+      exam: exam,
+      year: year,
+      category: category,
+      minRank: { lte: rank },
+      maxRank: { gte: Math.floor(rank / reachMultiplier) },
+    }
+
+    if (quota) {
+      whereClause.quota = quota
+    }
+
+    if (gender) {
+      whereClause.gender = gender
+    }
 
     const cutoffMatches = await prisma.cutoffRank.findMany({
-      where: {
-        exam: exam,
-        year: year,
-        category: category,
-        minRank: { lte: rank },
-        maxRank: { gte: Math.floor(rank / reachMultiplier) },
-      },
+      where: whereClause,
       include: {
         college: {
           select: {
@@ -68,6 +81,7 @@ export async function GET(request: NextRequest) {
             type: true,
             accreditation: true,
             established: true,
+            nirfRank: true,
             placements: {
               orderBy: { year: "desc" },
               take: 1,
@@ -84,21 +98,9 @@ export async function GET(request: NextRequest) {
       orderBy: { minRank: "asc" },
     })
 
-    const safe = []
-    const moderate = []
-    const reach = []
-
-    for (const cutoff of cutoffMatches) {
-      const rangeSize = cutoff.maxRank - cutoff.minRank
-      const safeZoneEnd = cutoff.maxRank - rangeSize * 0.2
-
-      const chancePercentage = calculateChancePercentage(
-        rank,
-        cutoff.minRank,
-        cutoff.maxRank
-      )
-
-      const formattedResult = {
+    const formatResult = (cutoff: typeof cutoffMatches[number], chanceLevel: "SAFE" | "MODERATE" | "REACH") => {
+      const chancePercentage = calculateChancePercentage(rank, cutoff.minRank, cutoff.maxRank)
+      return {
         cutoffId: cutoff.id,
         college: {
           ...cutoff.college,
@@ -112,16 +114,28 @@ export async function GET(request: NextRequest) {
           exam: cutoff.exam,
           year: cutoff.year,
           category: cutoff.category,
+          quota: cutoff.quota,
+          gender: cutoff.gender,
         },
+        chanceLevel,
         chancePercentage,
       }
+    }
+
+    const safe: Array<ReturnType<typeof formatResult>> = []
+    const moderate: Array<ReturnType<typeof formatResult>> = []
+    const reach: Array<ReturnType<typeof formatResult>> = []
+
+    for (const cutoff of cutoffMatches) {
+      const rangeSize = cutoff.maxRank - cutoff.minRank
+      const safeZoneEnd = cutoff.maxRank - rangeSize * 0.2
 
       if (rank <= safeZoneEnd) {
-        safe.push({ ...formattedResult, chanceLevel: "SAFE" as const })
+        safe.push(formatResult(cutoff, "SAFE"))
       } else if (rank <= cutoff.maxRank) {
-        moderate.push({ ...formattedResult, chanceLevel: "MODERATE" as const })
+        moderate.push(formatResult(cutoff, "MODERATE"))
       } else {
-        reach.push({ ...formattedResult, chanceLevel: "REACH" as const })
+        reach.push(formatResult(cutoff, "REACH"))
       }
     }
 
@@ -131,7 +145,7 @@ export async function GET(request: NextRequest) {
 
     return Response.json({
       data: {
-        input: { exam, rank, category, year },
+        input: { exam, rank, category, year, quota: quota || null, gender: gender || null },
         results: { safe, moderate, reach },
         totalFound: cutoffMatches.length,
         summary: {

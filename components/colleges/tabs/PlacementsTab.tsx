@@ -1,6 +1,9 @@
 import { useState } from "react"
 import type { Placement } from "@prisma/client"
+import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import { Briefcase, TrendingUp, Users } from "lucide-react"
+import AuthPrompt from "@/components/shared/AuthPrompt"
 
 function formatLPA(pkg: number): string {
   const lpa = pkg / 100000
@@ -8,6 +11,8 @@ function formatLPA(pkg: number): string {
 }
 
 export default function PlacementsTab({ placements }: { placements: Placement[] }) {
+  const { data: session } = useSession()
+  const pathname = usePathname()
   const [selectedYear, setSelectedYear] = useState<number>(
     placements.length > 0 ? placements[0].year : 0
   )
@@ -92,8 +97,17 @@ export default function PlacementsTab({ placements }: { placements: Placement[] 
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Year over Year Comparison
           </h3>
-          <div className="overflow-x-auto bg-white border border-gray-200 rounded-xl">
-            <table className="w-full border-collapse text-sm">
+          <div className="relative">
+            {!session && (
+              <AuthPrompt
+                overlay
+                message="Sign in to view full placement history"
+                action="Sign In to Unlock"
+                callbackUrl={pathname}
+              />
+            )}
+            <div className={`overflow-x-auto bg-white border border-gray-200 rounded-xl ${!session ? "filter blur-[5px] select-none pointer-events-none" : ""}`}>
+              <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
                   <th className="text-left px-4 py-3">Year</th>
@@ -136,8 +150,9 @@ export default function PlacementsTab({ placements }: { placements: Placement[] 
                     </tr>
                   )
                 })}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       )}

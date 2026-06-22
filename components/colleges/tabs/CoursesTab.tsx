@@ -1,6 +1,9 @@
+import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import type { Course } from "@prisma/client"
 import { Badge } from "@/components/ui"
-import { Clock, GraduationCap, IndianRupee, Users } from "lucide-react"
+import { Clock, GraduationCap, Users } from "lucide-react"
+import AuthPrompt from "@/components/shared/AuthPrompt"
 
 function formatFees(fees: number): string {
   if (fees >= 100000) return `₹${(fees / 100000).toFixed(1)}L`
@@ -30,6 +33,8 @@ const degreeLabels: Record<string, string> = {
 }
 
 export default function CoursesTab({ courses }: { courses: Course[] }) {
+  const { data: session } = useSession()
+  const pathname = usePathname()
   if (courses.length === 0) {
     return (
       <div className="text-center py-16">
@@ -53,9 +58,19 @@ export default function CoursesTab({ courses }: { courses: Course[] }) {
         </p>
       </div>
 
-      {Object.entries(groups).map(([degree, degreeCourses]) => (
-        <section key={degree}>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="relative mt-6">
+        {!session && (
+          <AuthPrompt
+            overlay
+            message="Sign in to view all courses and fees"
+            action="Sign In to Unlock"
+            callbackUrl={pathname}
+          />
+        )}
+        <div className={`space-y-8 ${!session ? "filter blur-[5px] select-none pointer-events-none max-h-[600px] overflow-hidden" : ""}`}>
+          {Object.entries(groups).map(([degree, degreeCourses]) => (
+            <section key={degree}>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
             {degreeLabels[degree] || `${degree} Programs`}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -97,8 +112,10 @@ export default function CoursesTab({ courses }: { courses: Course[] }) {
               </div>
             ))}
           </div>
-        </section>
-      ))}
+            </section>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

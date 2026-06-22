@@ -14,6 +14,7 @@ export type FilterKey =
   | "sortBy"
   | "sortOrder"
   | "page"
+  | "instituteType"
 
 export function useCollegeFilters() {
   const router = useRouter()

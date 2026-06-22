@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get("limit") || "12",
       sortBy: searchParams.get("sortBy") || "rating",
       sortOrder: searchParams.get("sortOrder") || "desc",
+      instituteType: searchParams.get("instituteType") || undefined,
     }
 
     const parsed = collegeFilterSchema.safeParse(rawParams)
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
       limit,
       sortBy,
       sortOrder,
+      instituteType,
     } = parsed.data
 
     const where: Prisma.CollegeWhereInput = {}
@@ -77,6 +79,19 @@ export async function GET(request: NextRequest) {
       where.rating = { gte: minRating }
     }
 
+    // IIT/NIT filter by slug prefix
+    if (instituteType === "IIT") {
+      where.slug = { startsWith: "iit-" }
+    } else if (instituteType === "NIT") {
+      where.OR = [
+        { slug: { startsWith: "nit-" } },
+        { slug: { startsWith: "mnit-" } },
+        { slug: { startsWith: "mnnit-" } },
+        { slug: { startsWith: "vnit-" } },
+        { slug: { startsWith: "svnit-" } },
+      ]
+    }
+
     const orderBy: Prisma.CollegeOrderByWithRelationInput = {}
     orderBy[sortBy] = sortOrder
 
@@ -101,6 +116,7 @@ export async function GET(request: NextRequest) {
           type: true,
           accreditation: true,
           established: true,
+          nirfRank: true,
           examAccepted: true,
           placements: {
             orderBy: { year: "desc" },

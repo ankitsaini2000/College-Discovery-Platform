@@ -6,9 +6,11 @@ import OverviewTab from "./tabs/OverviewTab"
 import CoursesTab from "./tabs/CoursesTab"
 import PlacementsTab from "./tabs/PlacementsTab"
 import ReviewsTab from "./tabs/ReviewsTab"
+import CutoffsTab from "./tabs/CutoffsTab"
 
 const tabs = [
   { id: "overview", label: "Overview" },
+  { id: "cutoffs", label: "Cutoffs" },
   { id: "courses", label: "Courses" },
   { id: "placements", label: "Placements" },
   { id: "reviews", label: "Reviews" },
@@ -51,6 +53,7 @@ export default function CollegeDetailClient({
 
       <div className="mt-6">
         {activeTab === "overview" && <OverviewTab college={college} />}
+        {activeTab === "cutoffs" && <CutoffsTab college={college} />}
         {activeTab === "courses" && <CoursesTab courses={college.courses} />}
         {activeTab === "placements" && <PlacementsTab placements={college.placements} />}
         {activeTab === "reviews" && (

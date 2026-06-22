@@ -7,9 +7,6 @@ import { Search, Loader2, Clock, X } from "lucide-react"
 const quickFilters = [
   { label: "JEE Main", href: "/colleges?exam=JEE_MAIN" },
   { label: "JEE Advanced", href: "/colleges?exam=JEE_ADVANCED" },
-  { label: "NEET", href: "/colleges?exam=NEET" },
-  { label: "CAT", href: "/colleges?exam=CAT" },
-  { label: "CLAT", href: "/colleges?exam=CLAT" },
 ]
 
 const STORAGE_KEY = "cc-recent-searches"

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useOptimistic } from "react"
+import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Star, ThumbsUp, ThumbsDown, PenLine, Loader2, CheckCircle } from "lucide-react"
-import { Button, Badge } from "@/components/ui"
+import { Button } from "@/components/ui"
 import { toast } from "sonner"
 import AuthPrompt from "@/components/shared/AuthPrompt"
 import type { ReviewWithUser } from "@/types"
@@ -218,10 +218,9 @@ function ReviewForm({
 
 export default function ReviewsTab({
   reviews: initialReviews,
-  collegeId,
   collegeSlug,
   currentUserId,
-  totalReviews,
+  totalReviews: initialTotal,
   initialRating,
 }: {
   reviews: ReviewWithUser[]
@@ -232,8 +231,8 @@ export default function ReviewsTab({
   initialRating: number | null
 }) {
   const [reviews, setReviews] = useState(initialReviews)
+  const [totalReviews, setTotalReviews] = useState(initialTotal)
   const [showForm, setShowForm] = useState(false)
-  const { data: session } = useSession()
   const router = useRouter()
 
   const userReview = reviews.find((r) => r.user.id === currentUserId)

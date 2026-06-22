@@ -5,16 +5,13 @@ import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import {
-  GitCompare, Plus, X, Star, MapPin, GraduationCap, Trash2, Save, Building2, Calendar,
-  Award, BookOpen, TrendingUp, Users, IndianRupee, ExternalLink,
-} from "lucide-react"
+import { GitCompare, Plus, X, MapPin, Star, Trash2, Save } from "lucide-react"
 import { Button, Badge, Skeleton } from "@/components/ui"
 import AuthPrompt from "@/components/shared/AuthPrompt"
 import { useCompareStore } from "@/store/compareStore"
 import CollegeSearchModal from "./CollegeSearchModal"
 import { toast } from "sonner"
-import type { CollegeCard } from "@/types"
+import type { CollegeWithRelations } from "@/types"
 
 function formatFees(n: number) {
   if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`
@@ -171,10 +168,20 @@ export default function CompareClient() {
         <>
           <div className="overflow-x-auto -mx-4 sm:mx-0 mt-6">
             <div className="min-w-[600px] px-4 sm:px-0">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden relative">
+            {!session && (
+              <AuthPrompt
+                overlay
+                message="Sign in to view full comparison details"
+                action="Sign In to Unlock"
+                callbackUrl="/compare"
+              />
+            )}
             <table className="w-full border-collapse text-sm min-w-[600px]">
-
-              <SectionHeader label="Basic Information" />
+              
+              {/* Basic Information - Always visible */}
+              <tbody>
+                <SectionHeader label="Basic Information" />
               <CompareRow
                 label="Annual Fees"
                 values={colleges.map((c) => {
@@ -201,8 +208,36 @@ export default function CompareClient() {
                 label="Location"
                 values={colleges.map((c) => ({ value: `${c.city}, ${c.state}`, best: false }))}
               />
+              <CompareRow
+                label="NIRF Rank"
+                values={colleges.map((c) => {
+                  const all = colleges.map((x) => x.nirfRank || 999)
+                  const best = Math.min(...all)
+                  return { value: c.nirfRank ? `#${c.nirfRank}` : "N/A", best: c.nirfRank === best && c.nirfRank != null }
+                })}
+              />
+              <CompareRow
+                label="Campus Area"
+                values={colleges.map((c) => ({ value: c.campusSize || "N/A", best: false }))}
+              />
+              <CompareRow
+                label="Student:Faculty Ratio"
+                values={colleges.map((c) => ({ value: c.studentFacultyRatio || "N/A", best: false }))}
+              />
+              <CompareRow
+                label="Total Students"
+                values={colleges.map((c) => ({ value: c.totalStudents ? c.totalStudents.toLocaleString("en-IN") : "N/A", best: false }))}
+              />
+              <CompareRow
+                label="Hostel"
+                values={colleges.map((c) => ({ value: c.hostelAvailable ? "✅ Available" : "❌ Not Available", best: false }))}
+              />
 
-              <SectionHeader label="Academics" />
+              </tbody>
+
+              {/* Advanced Information - Blurred if no session */}
+              <tbody className={!session ? "filter blur-[6px] select-none pointer-events-none" : ""}>
+                <SectionHeader label="Academics" />
               <CompareRow
                 label="Courses Offered"
                 values={colleges.map((c) => ({
@@ -272,6 +307,7 @@ export default function CompareClient() {
                   return { value: String(c._count?.reviews || 0), best: (c._count?.reviews || 0) === best && best > 0 }
                 })}
               />
+              </tbody>
             </table>
           </div>
             </div>

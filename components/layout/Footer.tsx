@@ -9,10 +9,7 @@ const exploreLinks = [
 
 const examLinks = [
   { label: "JEE Main Colleges", href: "/colleges?exam=JEE_MAIN" },
-  { label: "JEE Advanced Colleges", href: "/colleges?exam=JEE_ADVANCED" },
-  { label: "NEET Colleges", href: "/colleges?exam=NEET" },
-  { label: "CAT Colleges", href: "/colleges?exam=CAT" },
-  { label: "CLAT Colleges", href: "/colleges?exam=CLAT" },
+  { label: "JEE Advanced Colleges", href: "/colleges?exam=JEE_ADVANCED" }
 ]
 
 const typeLinks = [

@@ -58,41 +58,50 @@ model VerificationToken {
 }
 
 model College {
-  id               String            @id @default(cuid())
-  name             String
-  slug             String            @unique
-  location         String
-  city             String
-  state            String
-  country          String            @default("India")
-  fees             Int
-  rating           Float             @default(0)
-  reviewCount      Int               @default(0)
-  imageUrl         String?
-  overview         String            @db.Text
-  established      Int?
-  type             CollegeType       @default(PRIVATE)
-  accreditation    String?
-  website          String?
-  phone            String?
-  email            String?
-  examAccepted     ExamType[]
-  cutoffRanks      CutoffRank[]
-  courses          Course[]
-  placements       Placement[]
-  reviews          Review[]
-  savedBy          SavedCollege[]
-  comparisonsA     SavedComparison[] @relation("CollegeA")
-  comparisonsB     SavedComparison[] @relation("CollegeB")
-  comparisonsC     SavedComparison[] @relation("CollegeC")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                  String            @id @default(cuid())
+  name                String
+  slug                String            @unique
+  location            String
+  city                String
+  state               String
+  country             String            @default("India")
+  fees                Int
+  rating              Float             @default(0)
+  reviewCount         Int               @default(0)
+  imageUrl            String?
+  overview            String            @db.Text
+  established         Int?
+  type                CollegeType       @default(PRIVATE)
+  status              CollegeStatus     @default(ACTIVE)
+  accreditation       String?
+  website             String?
+  phone               String?
+  email               String?
+  nirfRank            Int?
+  campusSize          String?
+  totalStudents       Int?
+  totalFaculty        Int?
+  studentFacultyRatio String?
+  hostelAvailable     Boolean           @default(true)
+  logoUrl             String?
+  examAccepted        ExamType[]
+  cutoffRanks         CutoffRank[]
+  courses             Course[]
+  placements          Placement[]
+  reviews             Review[]
+  savedBy             SavedCollege[]
+  comparisonsA        SavedComparison[] @relation("CollegeA")
+  comparisonsB        SavedComparison[] @relation("CollegeB")
+  comparisonsC        SavedComparison[] @relation("CollegeC")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   @@index([state])
   @@index([fees])
   @@index([rating])
   @@index([type])
   @@index([slug])
+  @@index([nirfRank])
 }
 
 model CutoffRank {
@@ -105,9 +114,13 @@ model CutoffRank {
   minRank   Int
   maxRank   Int
   course    String?
+  quota     String?  // "AI" (All India), "HS" (Home State), "OS" (Other State)
+  gender    String?  // "Gender-Neutral", "Female-Only"
+  round     Int?     // JoSAA round number
 
   @@index([exam, year, category])
   @@index([collegeId])
+  @@index([quota])
 }
 
 model Course {
@@ -184,6 +197,12 @@ enum CollegeType {
   PRIVATE
   DEEMED
   AUTONOMOUS
+}
+
+enum CollegeStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
 }
 
 enum ExamType {

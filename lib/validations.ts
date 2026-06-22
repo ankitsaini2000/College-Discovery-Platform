@@ -30,8 +30,9 @@ export const collegeFilterSchema = z.object({
   minRating: z.coerce.number().min(0).max(5).optional(),
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(50).default(12),
-  sortBy: z.enum(["rating", "fees", "name", "established"]).default("rating"),
+  sortBy: z.enum(["rating", "fees", "name", "established", "nirfRank"]).default("rating"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  instituteType: z.enum(["IIT", "NIT", "ALL"]).optional(),
 })
 
 export const compareSchema = z.object({
@@ -67,6 +68,8 @@ export const predictorSchema = z.object({
     .min(2020)
     .max(new Date().getFullYear())
     .default(2024),
+  quota: z.enum(["AI", "OS", "HS"]).optional(),
+  gender: z.enum(["Gender-Neutral", "Female-Only"]).optional(),
 })
 
 export const saveCollegeSchema = z.object({

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Filter, SlidersHorizontal, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
+import { SlidersHorizontal, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react"
 import { Button, SkeletonCollegeGrid } from "@/components/ui"
 import CollegeCard from "@/components/colleges/CollegeCard"
 import FilterSidebar from "@/components/colleges/FilterSidebar"
@@ -9,14 +9,20 @@ import BottomSheet from "@/components/shared/BottomSheet"
 import { useColleges } from "@/hooks/useColleges"
 import { useCollegeFilters } from "@/hooks/useCollegeFilters"
 import { useDebounce } from "@/hooks/useDebounce"
-import type { CollegeCard as CollegeCardType } from "@/types"
 
 const sortOptions = [
   { label: "Top Rated", sortBy: "rating", sortOrder: "desc" },
+  { label: "NIRF Rank", sortBy: "nirfRank", sortOrder: "asc" },
   { label: "Lowest Fees", sortBy: "fees", sortOrder: "asc" },
   { label: "Highest Fees", sortBy: "fees", sortOrder: "desc" },
   { label: "Newest First", sortBy: "established", sortOrder: "desc" },
   { label: "Name A-Z", sortBy: "name", sortOrder: "asc" },
+]
+
+const instituteTabs = [
+  { value: "", label: "All" },
+  { value: "IIT", label: "IITs" },
+  { value: "NIT", label: "NITs" },
 ]
 
 export default function CollegesClient({ states }: { states: string[] }) {
@@ -28,7 +34,7 @@ export default function CollegesClient({ states }: { states: string[] }) {
 
   useEffect(() => {
     setFilter("search", debouncedSearch || null)
-  }, [debouncedSearch])
+  }, [debouncedSearch, setFilter])
 
   const { data, isLoading, isError, refetch } = useColleges(queryString)
 
@@ -64,6 +70,22 @@ export default function CollegesClient({ states }: { states: string[] }) {
 
   return (
     <>
+      {/* IIT/NIT Toggle Tabs */}
+      <div className="flex items-center gap-1 mb-4 p-1 bg-gray-100 rounded-xl w-fit">
+        {instituteTabs.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setFilter("instituteType", tab.value || null)}
+            className={`px-5 py-2 text-sm font-medium rounded-lg transition-all ${
+              (getFilter("instituteType") || "") === tab.value
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">

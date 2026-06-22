@@ -62,6 +62,7 @@ export default function CollegeSearchModal({
         type: college.type,
         accreditation: college.accreditation,
         established: college.established,
+        nirfRank: college.nirfRank,
         latestPlacement: college.placements?.[0]
           ? {
               averagePackage: college.placements[0].averagePackage,
