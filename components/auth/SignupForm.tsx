@@ -51,13 +51,11 @@ export default function SignupForm() {
         return
       }
 
-      toast.success("Account created! Logging you in...")
-
-      await signIn("credentials", {
-        email,
-        password,
-        callbackUrl: "/dashboard",
-      })
+      toast.success(data.message || "Account created! Check your email for the verification link.")
+      setName("")
+      setEmail("")
+      setPassword("")
+      setConfirmPassword("")
     } catch {
       toast.error("Something went wrong. Please try again.")
       setIsLoading(false)
