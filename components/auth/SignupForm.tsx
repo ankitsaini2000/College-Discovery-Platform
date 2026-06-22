@@ -56,6 +56,7 @@ export default function SignupForm() {
       setEmail("")
       setPassword("")
       setConfirmPassword("")
+      setIsLoading(false)
     } catch {
       toast.error("Something went wrong. Please try again.")
       setIsLoading(false)
