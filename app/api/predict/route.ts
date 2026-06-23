@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
       exam: exam,
       year: year,
       category: category,
-      minRank: { lte: rank },
       maxRank: { gte: Math.floor(rank / reachMultiplier) },
     }
 
