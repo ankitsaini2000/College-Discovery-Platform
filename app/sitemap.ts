@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const BASE_URL = "https://college-discovery-platform.vercel.app"
+const BASE_URL = "https://college-discovery-platform-tbd1.onrender.com"
 
 const collegeSlugs = [
   "iit-kharagpur", "iit-bombay", "iit-madras", "iit-kanpur", "iit-delhi",

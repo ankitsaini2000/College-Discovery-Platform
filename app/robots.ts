@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/dashboard"],
     },
-    sitemap: `https://college-discovery-platform.vercel.app/sitemap.xml`,
+    sitemap: `https://college-discovery-platform-tbd1.onrender.com/sitemap.xml`,
   }
 }

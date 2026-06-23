@@ -91,7 +91,7 @@ export default async function CollegeDetailPage({
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     name: college.name,
-    url: `https://college-discovery-platform.vercel.app/colleges/${college.slug}`,
+    url: `https://college-discovery-platform-tbd1.onrender.com/colleges/${college.slug}`,
     description: college.overview?.slice(0, 200) || "",
     image: college.imageUrl || undefined,
     address: {
