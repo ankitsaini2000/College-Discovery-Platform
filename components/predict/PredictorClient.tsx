@@ -307,7 +307,7 @@ export default function PredictorClient() {
           </Button>
 
           <p className="text-xs text-gray-400 text-center mt-3">
-            ⓘ Predictions based on JoSAA {formData.year || "2025"} cutoff data. Actual cutoffs may vary. Use as reference only.
+            ⓘ Predictions based on JoSAA {formData.year || "2024"} cutoff data. Actual cutoffs may vary. Use as reference only.
           </p>
         </div>
       </div>
