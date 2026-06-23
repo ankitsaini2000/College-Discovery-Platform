@@ -263,6 +263,12 @@ export default async function HomePage() {
                 Try JEE Predictor
               </Button>
             </Link>
+            <Link href="/compare">
+              <Button className="bg-white/20 text-white hover:bg-white/30 font-semibold border-0">
+                <GitCompare className="h-4 w-4" />
+                Compare Colleges
+              </Button>
+            </Link>
             <Link href="/colleges">
               <Button className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold">
                 Explore All Colleges

@@ -6,7 +6,7 @@ import Providers from "@/components/shared/Providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-const BASE_URL = process.env.AUTH_URL || "https://collegecompass-hub.netlify.app"
+const BASE_URL = "https://collegecompass-hub.netlify.app"
 
 export const viewport: Viewport = {
   width: "device-width",

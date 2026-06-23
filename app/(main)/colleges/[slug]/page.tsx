@@ -67,11 +67,31 @@ export default async function CollegeDetailPage({
   const user = await getCurrentUser()
   const latestPlacement = college.placements[0] ?? null
 
+  const similarColleges = await prisma.college.findMany({
+    where: {
+      id: { not: college.id },
+      OR: [
+        { state: college.state },
+        { type: college.type },
+        { examAccepted: { hasSome: college.examAccepted } },
+      ],
+      status: "ACTIVE",
+    },
+    take: 4,
+    orderBy: { rating: "desc" },
+    select: {
+      id: true, name: true, slug: true, city: true, state: true,
+      fees: true, rating: true, reviewCount: true, imageUrl: true,
+      type: true, nirfRank: true, accreditation: true, established: true,
+      placements: { take: 1, orderBy: { year: "desc" } },
+    },
+  })
+
   const collegeSchema = {
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     name: college.name,
-    url: `${process.env.AUTH_URL || "https://collegecompass-hub.netlify.app"}/colleges/${college.slug}`,
+    url: `https://collegecompass-hub.netlify.app/colleges/${college.slug}`,
     description: college.overview?.slice(0, 200) || "",
     image: college.imageUrl || undefined,
     address: {
@@ -243,6 +263,59 @@ export default async function CollegeDetailPage({
           currentUserId={user?.id ?? null}
         />
       </div>
+
+      {similarColleges.length > 0 && (
+        <div className="bg-gray-50 border-t border-gray-200 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Similar Colleges</h2>
+                <p className="text-gray-500 mt-1">Other top engineering colleges you might be interested in</p>
+              </div>
+              <Link
+                href="/colleges"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 hidden sm:block"
+              >
+                View all colleges &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarColleges.map((c) => {
+                const pkg = c.placements[0]
+                return (
+                  <Link key={c.id} href={`/colleges/${c.slug}`} className="group block">
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200">
+                      <div className="h-36 relative bg-gray-100">
+                        {c.imageUrl ? (
+                          <Image src={c.imageUrl} alt={c.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+                            <span className="text-5xl font-bold text-blue-300">{c.name.charAt(0)}</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white font-semibold text-sm truncate">{c.name}</p>
+                          <p className="text-white/80 text-xs">{c.city}, {c.state}</p>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-semibold text-gray-900">{c.fees ? `₹${(c.fees / 100000).toFixed(1)}L` : "N/A"}</span>
+                          {c.nirfRank && <span className="text-blue-600 text-xs font-medium">NIRF #{c.nirfRank}</span>}
+                        </div>
+                        {pkg && (
+                          <p className="text-xs text-gray-500 mt-1">Avg package: {(pkg.averagePackage / 100000).toFixed(1)} LPA</p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   )

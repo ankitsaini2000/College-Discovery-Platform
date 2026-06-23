@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/dashboard"],
     },
-    sitemap: `${process.env.AUTH_URL || "https://collegecompass-hub.netlify.app"}/sitemap.xml`,
+    sitemap: `https://collegecompass-hub.netlify.app/sitemap.xml`,
   }
 }
