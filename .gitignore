@@ -39,3 +39,5 @@ scripts/scraper/node_modules/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
