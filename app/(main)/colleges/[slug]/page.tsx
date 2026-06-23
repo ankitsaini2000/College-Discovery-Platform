@@ -18,12 +18,27 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const college = await prisma.college.findFirst({
     where: { OR: [{ slug: params.slug }, { id: params.slug }] },
-    select: { name: true, city: true, state: true, overview: true },
+    select: { name: true, city: true, state: true, overview: true, imageUrl: true, fees: true, rating: true },
   })
   if (!college) return { title: "College Not Found" }
+  const ogDescription = `${college.name} in ${college.city}, ${college.state} — Fees: ₹${(college.fees / 100000).toFixed(1)}L, Rating: ${college.rating}/5. ${(college.overview || "").slice(0, 120)}...`
   return {
     title: college.name,
-    description: `${college.name} in ${college.city}, ${college.state}. ${(college.overview || "").slice(0, 150)}...`,
+    description: ogDescription,
+    alternates: {
+      canonical: `/colleges/${params.slug}`,
+    },
+    openGraph: {
+      title: `${college.name} — Fees, Placements, Cutoffs & Reviews`,
+      description: ogDescription,
+      images: college.imageUrl ? [{ url: college.imageUrl, width: 800, height: 600, alt: college.name }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${college.name} — Fees, Placements, Cutoffs & Reviews`,
+      description: ogDescription,
+      images: college.imageUrl ? [college.imageUrl] : [],
+    },
   }
 }
 
@@ -52,8 +67,32 @@ export default async function CollegeDetailPage({
   const user = await getCurrentUser()
   const latestPlacement = college.placements[0] ?? null
 
+  const collegeSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollegeOrUniversity",
+    name: college.name,
+    url: `${process.env.AUTH_URL || "https://collegecompass-hub.netlify.app"}/colleges/${college.slug}`,
+    description: college.overview?.slice(0, 200) || "",
+    image: college.imageUrl || undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: college.city,
+      addressRegion: college.state,
+      addressCountry: "IN",
+    },
+    ...(college.established && { foundingDate: String(college.established) }),
+    ...(latestPlacement && {
+      numberOfEmployees: { "@type": "QuantitativeValue", value: latestPlacement.averagePackage },
+    }),
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collegeSchema) }}
+      />
+      <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 text-sm text-gray-500 py-3">
@@ -205,5 +244,6 @@ export default async function CollegeDetailPage({
         />
       </div>
     </div>
+    </>
   )
 }

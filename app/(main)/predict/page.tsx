@@ -4,6 +4,10 @@ import PredictorClient from "@/components/predict/PredictorClient"
 export const metadata: Metadata = {
   title: "JEE Rank Predictor | IIT & NIT College Predictor",
   description: "Enter your JEE Main or JEE Advanced rank to predict which IITs and NITs you can get into. Branch-wise results with real JoSAA cutoff data.",
+  openGraph: {
+    title: "JEE Rank Predictor — Predict Your IIT & NIT College",
+    description: "Enter your JEE Main or JEE Advanced rank to predict which IITs and NITs you can get into. Branch-wise results with real JoSAA cutoff data.",
+  },
 }
 
 export default function PredictPage() {

@@ -24,7 +24,7 @@ export default async function SignupPage() {
             </div>
             <span className="text-xl font-bold text-gray-900">CollegeCompass</span>
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
+          <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
           <p className="text-gray-500 mt-1">Join thousands of students making smarter college decisions</p>
         </div>
 

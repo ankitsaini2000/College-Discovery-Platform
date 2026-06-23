@@ -1,11 +1,23 @@
-export const dynamic = "force-dynamic"
-
+import type { Metadata } from "next"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { GraduationCap, MapPin, Heart, Database, Search, GitCompare, Sparkles, ArrowRight, Building2 } from "lucide-react"
 import { Button } from "@/components/ui"
 import HeroSearch from "@/components/shared/HeroSearch"
 import CollegeCard from "@/components/colleges/CollegeCard"
+
+export const metadata: Metadata = {
+  title: "Find Your Perfect IIT or NIT — CollegeCompass",
+  description:
+    "Explore all 23 IITs and 31 NITs in India. Compare NIRF rankings, fees, placements, JoSAA cutoffs, and course data. Use our JEE rank predictor to find your best college.",
+  openGraph: {
+    title: "Find Your Perfect IIT or NIT — CollegeCompass",
+    description:
+      "Explore all 23 IITs and 31 NITs in India. Compare NIRF rankings, fees, placements, JoSAA cutoffs, and course data.",
+  },
+}
+
+export const dynamic = "force-dynamic"
 
 const features = [
   {

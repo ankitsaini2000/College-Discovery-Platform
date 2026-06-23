@@ -37,7 +37,7 @@ export default async function LoginPage({
             </div>
             <span className="text-xl font-bold text-gray-900">CollegeCompass</span>
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="text-gray-500 mt-1">Log in to access your saved colleges and comparisons</p>
         </div>
 

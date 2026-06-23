@@ -2,8 +2,12 @@ import type { Metadata } from "next"
 import CompareClient from "@/components/compare/CompareClient"
 
 export const metadata: Metadata = {
-  title: "Compare Colleges",
-  description: "Compare colleges side by side on fees, placements, ratings and more",
+  title: "Compare IITs & NITs Side by Side",
+  description: "Compare up to 3 IITs and NITs side by side on NIRF ranking, fees, placements, JoSAA cutoffs, courses, and ratings. Make an informed college decision.",
+  openGraph: {
+    title: "Compare IITs & NITs Side by Side — CollegeCompass",
+    description: "Compare up to 3 IITs and NITs side by side on NIRF ranking, fees, placements, JoSAA cutoffs, courses, and ratings.",
+  },
 }
 
 export default function ComparePage() {
