@@ -60,7 +60,7 @@ export default function Footer() {
               Find your perfect college with data-driven insights
             </p>
             <p className="text-gray-500 text-xs">
-              &copy; 2024 CollegeCompass. All rights reserved.
+              &copy; 2026 CollegeCompass. All rights reserved.
             </p>
           </div>
           <LinkColumn heading="Explore" links={exploreLinks} />
